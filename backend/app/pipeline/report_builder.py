@@ -1,9 +1,32 @@
 """
-Module for building the final report.
+Report builder pipeline module for TrustCheck.
 """
 
-def build_report(claims: list, verifications: list) -> dict:
+from typing import List
+from ..api.schemas import ClaimSchema, SummarySchema, CheckResponse, Verdict
+
+def build_report(request_id: str, verified_claims: List[ClaimSchema]) -> CheckResponse:
     """
-    Builds the final verification report.
+    Builds the final structured CheckResponse report from verified claims.
+    Calculates summary counts for each verdict state.
     """
-    return {}
+    counts = {
+        Verdict.SUPPORTED: 0,
+        Verdict.UNCERTAIN: 0,
+        Verdict.UNSUPPORTED: 0
+    }
+
+    for claim in verified_claims:
+        counts[claim.verdict] += 1
+
+    summary = SummarySchema(
+        supported=counts[Verdict.SUPPORTED],
+        uncertain=counts[Verdict.UNCERTAIN],
+        unsupported=counts[Verdict.UNSUPPORTED]
+    )
+
+    return CheckResponse(
+        request_id=request_id,
+        summary=summary,
+        claims=verified_claims
+    )

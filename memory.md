@@ -74,17 +74,20 @@ Full table with checks in rules.md section C.
 - Git repository initialized locally in `d:\Vibeathon` (`master` branch).
 - Phase 0 (Scope Freeze) completed.
 - Phase 1 (Repository and Deployment Skeleton) completed and committed (`0fbd8e9`).
-- Phase 2 (API Contract & Pydantic Validation) completed:
-  - `POST /api/v1/check` request and response schemas strictly typed and enforced.
-  - Whitespace-only, empty, and out-of-bounds inputs reject cleanly with HTTP 400 `bad_request`.
-  - Claims verdict rules enforced (supported requires evidence; fallback to uncertain).
-  - Standardized error handlers implemented for all exceptions, returning `{ "error": { "code", "message", "request_id" } }`.
-  - Request ID tracking middleware attached (`req_*`).
-  - 13/13 tests in pytest passing.
+- Phase 2 (API Contract & Pydantic Validation) completed and committed (`e5af766`).
+- Phase 3 (Backend Vertical Slice) completed:
+  - Claim extraction with verbatim quote location and character span calculation implemented (`claim_extractor.py`).
+  - SearchProvider interface and Tavily adapter implemented with bounded timeouts and resilient error recovery (`search.py`).
+  - Parallel per-claim verification with isolated error fallback implemented (`verifier.py`).
+  - Full pipeline wired into `POST /api/v1/check` producing structured `CheckResponse` reports.
+  - Rate limiting strictly verified: 5 req/min cap triggers HTTP 429 on the 6th rapid call.
+  - Evaluation fixtures created (`eval_fixtures.json`) covering supported, mixed, unsupported, uncertain, and injection test cases.
+  - Benchmark script created (`run_eval.py`) and verified against the 3,750-fact dataset (`ML MODEL DATASET/`).
+  - 18/18 pytest test cases passing 100%.
 - Pre-commit secret scanning hook active.
 
 ## Next implementation target
-Phase 3: Backend vertical slice. Implement claim extraction with search query planning, Tavily search provider interface, parallel verification, evaluation fixtures, and baseline benchmarking script. Commit as `feat: verification pipeline`.
+Phase 4: Frontend vertical slice. Build out interactive React components matching design tokens: input form with char counter, sample answer button, progress states, highlighted answer with colored span tags, summary strip, and claim cards with evidence drawer. Wire to backend. Commit as `feat: ui`.
 
 ## Glossary
 - Claim: one atomic, checkable factual statement from the answer.

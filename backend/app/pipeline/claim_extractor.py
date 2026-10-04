@@ -1,10 +1,49 @@
 """
-Module for extracting claims from an answer.
+Claim extractor pipeline module for TrustCheck.
 """
-import typing
 
-async def extract_claims(answer: str, question: typing.Optional[str] = None) -> list:
+from typing import List, Dict, Any, Optional
+from ..providers.anthropic import AnthropicProvider
+from ..api.schemas import SpanSchema
+from ..core.config import MAX_CLAIMS
+
+async def extract_claims(
+    answer: str,
+    question: Optional[str] = None,
+    provider: Optional[AnthropicProvider] = None
+) -> List[Dict[str, Any]]:
     """
-    Extracts verifiable claims from the provided answer.
+    Extracts atomic claims and search queries from the answer.
+    Computes character spans against original answer text.
     """
-    return []
+    if provider is None:
+        provider = AnthropicProvider()
+
+    raw_claims = await provider.extract_claims_and_queries(answer, question)
+    
+    extracted = []
+    for idx, item in enumerate(raw_claims[:MAX_CLAIMS]):
+        claim_id = f"c{idx + 1}"
+        text = item.get("text", "").strip()
+        quote = item.get("quote", "").strip()
+        search_query = item.get("search_query", text).strip()
+
+        if not text:
+            continue
+
+        # Locate exact quote in original answer for highlighting
+        span = None
+        if quote:
+            start_pos = answer.find(quote)
+            if start_pos != -1:
+                span = SpanSchema(start=start_pos, end=start_pos + len(quote))
+
+        extracted.append({
+            "id": claim_id,
+            "text": text,
+            "quote": quote,
+            "span": span,
+            "search_query": search_query or text
+        })
+
+    return extracted

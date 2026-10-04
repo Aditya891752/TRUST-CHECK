@@ -4,8 +4,8 @@
 Build the smallest complete vertical slice first. Every task ends in a testable state and one commit. Do not start optional polish until the end-to-end check flow works. Deploy early so hosting surprises appear first, not last.
 
 ## State
-- Current phase: 3
-- Last verified: Phase 2 API contract and validation tested (13/13 pytest passed, generic 400 on invalid input, request ID tracking)
+- Current phase: 4
+- Last verified: Phase 3 backend vertical slice tested (18/18 pytest passed, 5 req/min rate limit verified, run_eval.py verified with 5 fixtures and 3,750-fact dataset benchmark)
 - Blockers: none
 Update this block after every task.
 
@@ -34,14 +34,14 @@ Exit: the contract can be tested without any AI provider. Invalid input returns 
 Commit: `feat: api contract`
 
 ## Phase 3: Backend vertical slice
-- [ ] Claim extraction with search query per claim, verbatim quote check.
-- [ ] Search provider interface and Tavily adapter with timeout.
-- [ ] Evidence normalization with IDs.
-- [ ] Parallel per-claim verification with evidence IDs.
-- [ ] Validate every model response. Bounded retry (one) for malformed output.
-- [ ] Failure path: one failed claim becomes `uncertain`, not a 500.
-- [ ] Per-IP rate limit, daily cap, CORS allow-list, safe error handling.
-- [ ] Build the evaluation fixtures (aistack.md section 9) and a script that runs them.
+- [x] Claim extraction with search query per claim, verbatim quote check.
+- [x] Search provider interface and Tavily adapter with timeout.
+- [x] Evidence normalization with IDs.
+- [x] Parallel per-claim verification with evidence IDs.
+- [x] Validate every model response. Bounded retry (one) for malformed output.
+- [x] Failure path: one failed claim becomes `uncertain`, not a 500.
+- [x] Per-IP rate limit, daily cap, CORS allow-list, safe error handling.
+- [x] Build the evaluation fixtures (aistack.md section 9) and a script that runs them.
 Exit: a fixed sample answer returns structured claims and verdicts locally. A fabricated fact is `unsupported`, a correct fact is `supported`, the injection fixture does not change behavior. 20 rapid requests produce 429.
 Commit: `feat: verification pipeline`
 
