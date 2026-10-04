@@ -8,6 +8,7 @@ import ErrorNotice from './components/ErrorNotice';
 import SummaryStrip from './components/SummaryStrip';
 import HighlightedAnswer from './components/HighlightedAnswer';
 import ClaimCard from './components/ClaimCard';
+import { NoticeBanner } from './components/NoticeBanner';
 
 function App() {
   const [apiOnline, setApiOnline] = useState<boolean | null>(null);
@@ -143,6 +144,9 @@ function App() {
         {/* Results Report */}
         {report && (
           <section id="verification-report" style={{ marginTop: 'var(--space-8)' }}>
+            {/* Injection / System Notices */}
+            <NoticeBanner notices={report.notices} />
+
             <h2 style={{ fontSize: '20px', fontWeight: 600, color: 'var(--color-ink)', marginBottom: 'var(--space-2)' }}>
               Verification Report
             </h2>

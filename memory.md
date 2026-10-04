@@ -132,8 +132,16 @@ Full table with checks in rules.md section C.
   - Created frontend `QuoteBlock.tsx` emphasizing verified quotes inside snippets with WCAG AA stance badges.
   - 28/28 backend pytest tests passing, 4/4 Vitest tests passing, Vite builds cleanly.
 
+- Feature F5 (Injection Notices and Test Sample) completed:
+  - Regex pattern scanner in `backend/app/core/injection.py` covering English, Hinglish, and Hindi adversarial prompts.
+  - Automatic detection in input emits `instruction_in_input` notice with clean sanitized excerpt (max 80 chars).
+  - Tainted evidence detection in retrieved snippets drops malicious sources and emits `instruction_in_source` notice.
+  - NoticeSchema and notices array added to API contracts (`CheckResponse`).
+  - Frontend `NoticeBanner.tsx` created and rendered above report; "Injection test" sample button added to `CheckForm.tsx`.
+  - Comprehensive unit and differential tests passing (34/34 pytest, 4/4 vitest, clean Vite build).
+
 ## Next implementation target
-Step D: Feature F5 (Injection Notices and Test Sample) — input scanning, notice banners, dropping tainted snippets, and adversarial test button. Commit as `feat: injection notices and test sample`.
+Step E: Feature F4 (Hindi and Hinglish Support) — Devanagari digit normalization, UTF-16 code unit offset helper, language detection ('en', 'hi', 'hinglish'), script preservation in extraction and reasoning. Commit as `feat: hindi and hinglish support`.
 
 ## Glossary
 - Claim: one atomic, checkable factual statement from the answer.

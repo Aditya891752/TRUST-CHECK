@@ -2,10 +2,14 @@
 Report builder pipeline module for TrustCheck.
 """
 
-from typing import List
-from ..api.schemas import ClaimSchema, SummarySchema, CheckResponse, Verdict
+from typing import List, Optional
+from ..api.schemas import ClaimSchema, SummarySchema, CheckResponse, Verdict, NoticeSchema
 
-def build_report(request_id: str, verified_claims: List[ClaimSchema]) -> CheckResponse:
+def build_report(
+    request_id: str,
+    verified_claims: List[ClaimSchema],
+    notices: Optional[List[NoticeSchema]] = None
+) -> CheckResponse:
     """
     Builds the final structured CheckResponse report from verified claims.
     Calculates summary counts for each verdict state.
@@ -28,5 +32,6 @@ def build_report(request_id: str, verified_claims: List[ClaimSchema]) -> CheckRe
     return CheckResponse(
         request_id=request_id,
         summary=summary,
-        claims=verified_claims
+        claims=verified_claims,
+        notices=notices or []
     )

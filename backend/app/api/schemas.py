@@ -75,10 +75,16 @@ class SummarySchema(BaseModel):
     uncertain: int = Field(0, ge=0)
     unsupported: int = Field(0, ge=0)
 
+class NoticeSchema(BaseModel):
+    code: str = Field(..., description="Notice code: 'instruction_in_input' | 'instruction_in_source'")
+    message: str = Field(..., description="Fixed user-safe explanation")
+    excerpt: Optional[str] = Field(None, description="Plain-text detected excerpt (max 80 chars)")
+
 class CheckResponse(BaseModel):
     request_id: str = Field(..., description="Unique tracking identifier for the request")
     summary: SummarySchema = Field(..., description="Aggregate counts per verdict")
     claims: List[ClaimSchema] = Field(default_factory=list, max_length=MAX_CLAIMS, description="Atomic claims and evaluations")
+    notices: List[NoticeSchema] = Field(default_factory=list, description="Adversarial prompt injection notices or system notices")
 
 class ErrorDetailSchema(BaseModel):
     code: str = Field(..., description="Standardized error code")

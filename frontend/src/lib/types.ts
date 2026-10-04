@@ -30,10 +30,17 @@ export interface Claim {
   flags?: Flag[];
 }
 
+export interface Notice {
+  code: string;
+  message: string;
+  excerpt?: string | null;
+}
+
 export interface CheckResponse {
   request_id: string;
   summary: { supported: number; uncertain: number; unsupported: number };
   claims: Claim[];
+  notices?: Notice[];
 }
 
 export interface ApiError {
