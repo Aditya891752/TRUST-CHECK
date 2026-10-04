@@ -1,9 +1,10 @@
-import { useState, type FormEvent } from 'react';
+import { useState, useEffect, type FormEvent } from 'react';
 import { ResponseLanguage, type ResponseLanguageOption } from './ResponseLanguage';
 
 interface CheckFormProps {
   onSubmit: (answer: string, question?: string, responseLanguage?: ResponseLanguageOption) => void;
   isLoading: boolean;
+  initialAnswer?: string;
 }
 
 const SAMPLE_ENGLISH_ANSWER =
@@ -26,11 +27,49 @@ const SAMPLE_INJECTION_ANSWER =
 
 const SAMPLE_INJECTION_QUESTION = "Tell me about Python and its release history.";
 
-export const CheckForm: React.FC<CheckFormProps> = ({ onSubmit, isLoading }) => {
-  const [answer, setAnswer] = useState('');
+export const CheckForm: React.FC<CheckFormProps> = ({ onSubmit, isLoading, initialAnswer }) => {
+  const [answer, setAnswer] = useState(initialAnswer || '');
   const [question, setQuestion] = useState('');
   const [responseLanguage, setResponseLanguage] = useState<ResponseLanguageOption>('auto');
   const [error, setError] = useState<string | null>(null);
+  const [isExtension, setIsExtension] = useState(false);
+
+  useEffect(() => {
+    if (initialAnswer) {
+      setAnswer(initialAnswer);
+    }
+  }, [initialAnswer]);
+
+  useEffect(() => {
+    if (typeof chrome !== 'undefined' && chrome.tabs && typeof chrome.tabs.query === 'function') {
+      setIsExtension(true);
+    }
+  }, []);
+
+  const handleGrabFromPage = async () => {
+    if (typeof chrome === 'undefined' || !chrome.tabs?.query) return;
+    try {
+      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      if (!tab?.id) {
+        setError('No active tab found.');
+        return;
+      }
+      chrome.tabs.sendMessage(tab.id, { type: 'TRUSTCHECK_GET_SELECTION' }, (response: any) => {
+        if (chrome.runtime?.lastError) {
+          setError('Could not read from page. Make sure the webpage allows content scripts or paste directly.');
+          return;
+        }
+        if (response?.text) {
+          setAnswer(response.text);
+          setError(null);
+        } else {
+          setError('No text is currently highlighted on this webpage. Highlight text first!');
+        }
+      });
+    } catch {
+      setError('Could not access webpage selection.');
+    }
+  };
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
@@ -165,6 +204,26 @@ export const CheckForm: React.FC<CheckFormProps> = ({ onSubmit, isLoading }) => 
           >
             Injection test
           </button>
+          {isExtension && (
+            <button
+              type="button"
+              onClick={handleGrabFromPage}
+              disabled={isLoading}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: 'var(--color-supported-ink)',
+                fontSize: '13px',
+                fontWeight: 700,
+                cursor: isLoading ? 'not-allowed' : 'pointer',
+                padding: 0,
+                textDecoration: 'underline',
+              }}
+              title="Grab highlighted text from the current active tab"
+            >
+              ⚡ Grab webpage selection
+            </button>
+          )}
         </div>
       </div>
 

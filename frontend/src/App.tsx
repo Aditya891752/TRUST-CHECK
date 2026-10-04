@@ -21,6 +21,7 @@ function App() {
   const [progress, setProgress] = useState<number>(0);
   const [report, setReport] = useState<CheckResponse | null>(null);
   const [currentAnswer, setCurrentAnswer] = useState<string>('');
+  const [pendingSelection, setPendingSelection] = useState<string>('');
   const [error, setError] = useState<{ message: string; requestId?: string } | null>(null);
   const [lastPayload, setLastPayload] = useState<{ answer: string; question?: string; responseLanguage?: ResponseLanguageOption } | null>(null);
 
@@ -28,6 +29,27 @@ function App() {
 
   useEffect(() => {
     checkHealth().then((ok) => setApiOnline(ok));
+
+    // Listen for Chrome Extension context menu or storage selection
+    if (typeof chrome !== 'undefined' && chrome.storage?.local) {
+      chrome.storage.local.get(['trustcheck_pending_text'], (res: any) => {
+        if (res?.trustcheck_pending_text) {
+          setPendingSelection(res.trustcheck_pending_text);
+          chrome.storage.local.remove(['trustcheck_pending_text']);
+        }
+      });
+
+      const messageListener = (msg: any) => {
+        if (msg?.type === 'TRUSTCHECK_NEW_SELECTION' && msg.text) {
+          setPendingSelection(msg.text);
+        }
+      };
+
+      chrome.runtime?.onMessage?.addListener(messageListener);
+      return () => {
+        chrome.runtime?.onMessage?.removeListener?.(messageListener);
+      };
+    }
   }, []);
 
   const handleCancel = () => {
@@ -258,7 +280,7 @@ function App() {
         </section>
 
         {/* Input Form */}
-        <CheckForm onSubmit={handleCheck} isLoading={isLoading} />
+        <CheckForm onSubmit={handleCheck} isLoading={isLoading} initialAnswer={pendingSelection} />
 
         {/* Progress State */}
         {isLoading && <ProgressStatus stage={stage} progressPercent={progress} onCancel={handleCancel} />}

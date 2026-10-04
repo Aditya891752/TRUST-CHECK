@@ -45,7 +45,7 @@ async def request_id_middleware(request: Request, call_next):
 # 4. Daily cap middleware
 @app.middleware("http")
 async def daily_cap_middleware(request: Request, call_next):
-    if request.url.path == "/api/v1/check" and not check_daily_cap():
+    if request.url.path in ("/api/v1/check", "/api/v1/check/stream") and not check_daily_cap():
         req_id = getattr(request.state, "request_id", "unknown")
         return JSONResponse(
             status_code=429,

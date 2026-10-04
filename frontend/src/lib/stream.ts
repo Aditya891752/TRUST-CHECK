@@ -78,7 +78,7 @@ export async function checkStream(
   handlers: StreamHandlers,
   signal?: AbortSignal
 ): Promise<void> {
-  const baseUrl = import.meta.env.VITE_API_URL || '';
+  const baseUrl = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || 'http://localhost:8000';
   const url = `${baseUrl}/api/v1/check/stream`;
 
   const response = await fetch(url, {

@@ -172,6 +172,15 @@ Full table with checks in rules.md section C.
 ## Feature Pack Status
 All 6 feature pack items (F6, F3, F5, F4, F1, F2) completed and verified across local backend and frontend suites.
 
+## Chrome Extension
+- Chrome Extension (Manifest V3) added on `chrome-extension` branch:
+  - Manifest V3 in `frontend/public/manifest.json` configured for popup and Chrome Side Panel API (`side_panel`).
+  - Background service worker (`background.js`) registers right-click context menu "Verify with TrustCheck" on any text selection, persisting selection to storage and triggering the side panel.
+  - Content script (`content.js`) listens for active selection requests.
+  - Interactive "⚡ Grab webpage selection" button added to `CheckForm.tsx` when running inside extension context.
+  - Backend CORS updated with regex `^chrome-extension://.*` and daily cap protects streaming endpoint.
+  - Relative asset resolution (`base: './'`) in `vite.config.ts` outputs ready-to-load unpacked extension into `frontend/dist`.
+
 ## Glossary
 - Claim: one atomic, checkable factual statement from the answer.
 - Verdict: supported, uncertain or unsupported.
