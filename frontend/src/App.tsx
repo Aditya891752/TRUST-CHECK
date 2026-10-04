@@ -10,6 +10,8 @@ import HighlightedAnswer from './components/HighlightedAnswer';
 import ClaimCard from './components/ClaimCard';
 import { NoticeBanner } from './components/NoticeBanner';
 
+import type { ResponseLanguageOption } from './components/ResponseLanguage';
+
 function App() {
   const [apiOnline, setApiOnline] = useState<boolean | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -18,18 +20,18 @@ function App() {
   const [report, setReport] = useState<CheckResponse | null>(null);
   const [currentAnswer, setCurrentAnswer] = useState<string>('');
   const [error, setError] = useState<{ message: string; requestId?: string } | null>(null);
-  const [lastPayload, setLastPayload] = useState<{ answer: string; question?: string } | null>(null);
+  const [lastPayload, setLastPayload] = useState<{ answer: string; question?: string; responseLanguage?: ResponseLanguageOption } | null>(null);
 
   useEffect(() => {
     checkHealth().then((ok) => setApiOnline(ok));
   }, []);
 
-  const handleCheck = async (answer: string, question?: string) => {
+  const handleCheck = async (answer: string, question?: string, responseLanguage?: ResponseLanguageOption) => {
     setIsLoading(true);
     setError(null);
     setReport(null);
     setCurrentAnswer(answer);
-    setLastPayload({ answer, question });
+    setLastPayload({ answer, question, responseLanguage });
 
     // Stage 1: Extraction
     setStage('Extracting atomic factual claims...');
@@ -46,7 +48,11 @@ function App() {
     }, 2800);
 
     try {
-      const data = await checkAnswer({ answer, question });
+      const data = await checkAnswer({
+        answer,
+        question,
+        response_language: responseLanguage,
+      });
       setProgress(100);
       setReport(data);
     } catch (err: any) {
@@ -70,7 +76,7 @@ function App() {
 
   const handleRetry = () => {
     if (lastPayload) {
-      handleCheck(lastPayload.answer, lastPayload.question);
+      handleCheck(lastPayload.answer, lastPayload.question, lastPayload.responseLanguage);
     }
   };
 
@@ -143,13 +149,34 @@ function App() {
 
         {/* Results Report */}
         {report && (
-          <section id="verification-report" style={{ marginTop: 'var(--space-8)' }}>
+          <section
+            id="verification-report"
+            lang={report.language === 'hi' ? 'hi' : undefined}
+            style={{ marginTop: 'var(--space-8)' }}
+          >
             {/* Injection / System Notices */}
             <NoticeBanner notices={report.notices} />
 
-            <h2 style={{ fontSize: '20px', fontWeight: 600, color: 'var(--color-ink)', marginBottom: 'var(--space-2)' }}>
-              Verification Report
-            </h2>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-2)', flexWrap: 'wrap', gap: '8px' }}>
+              <h2 style={{ fontSize: '20px', fontWeight: 600, color: 'var(--color-ink)' }}>
+                Verification Report
+              </h2>
+              {report.language && (
+                <span
+                  style={{
+                    fontSize: '12px',
+                    color: 'var(--color-muted)',
+                    fontFamily: 'var(--font-mono)',
+                    border: '1px solid var(--color-line)',
+                    padding: '2px 8px',
+                    borderRadius: '4px',
+                    backgroundColor: 'var(--color-surface)',
+                  }}
+                >
+                  Detected: {report.language === 'hi' ? 'Hindi (हिन्दी)' : report.language === 'hinglish' ? 'Hinglish' : 'English'}
+                </span>
+              )}
+            </div>
 
             {/* Summary Strip */}
             <SummaryStrip
@@ -159,7 +186,12 @@ function App() {
             />
 
             {/* Highlighted Answer */}
-            {currentAnswer && <HighlightedAnswer originalText={currentAnswer} claims={report.claims} />}
+            {currentAnswer && (
+              <HighlightedAnswer
+                originalText={report.answer_normalized || currentAnswer}
+                claims={report.claims}
+              />
+            )}
 
             {/* Claim Cards List */}
             <div style={{ marginTop: 'var(--space-6)' }}>

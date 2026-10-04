@@ -32,7 +32,8 @@ def truncate_at_word_boundary(text: str, max_chars: int) -> str:
 async def verify_claims(
     claims: List[Dict[str, Any]],
     evidence_by_claim: List[List[Dict[str, Any]]],
-    provider: Optional[AnthropicProvider] = None
+    provider: Optional[AnthropicProvider] = None,
+    response_language: str = "en"
 ) -> List[ClaimSchema]:
     """
     Verifies claims in parallel against their respective retrieved evidence.
@@ -48,7 +49,10 @@ async def verify_claims(
         flags = claim.get("flags", [])
 
         try:
-            res = await provider.verify_claim(claim_text, raw_evidence)
+            try:
+                res = await provider.verify_claim(claim_text, raw_evidence, response_language=response_language)
+            except TypeError:
+                res = await provider.verify_claim(claim_text, raw_evidence)
             verdict_str = res.get("verdict", "uncertain").lower()
             reasoning = res.get("reasoning", "Evidence inconclusive.")
             ev_evals = res.get("evidence", [])

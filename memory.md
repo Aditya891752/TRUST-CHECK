@@ -140,8 +140,17 @@ Full table with checks in rules.md section C.
   - Frontend `NoticeBanner.tsx` created and rendered above report; "Injection test" sample button added to `CheckForm.tsx`.
   - Comprehensive unit and differential tests passing (34/34 pytest, 4/4 vitest, clean Vite build).
 
+- Feature F4 (Hindi and Hinglish Support) completed:
+  - Unicode NFC normalization in `backend/app/core/text.py` and `answer_normalized` returned in API response.
+  - UTF-16 code unit offset helper (`codepoint_to_utf16_offset`, `utf16_span`) for JavaScript-precise span and flag offsets with astral emoji and Devanagari characters.
+  - Multilingual language detection (`detect_language` for 'hi', 'hinglish', 'en') and `response_language` routing ('auto', 'en', 'hi', 'hinglish').
+  - Claims preserve user script/wording; reasoning delivered in requested language.
+  - Support for Devanagari full stop (। and ॥) in claim segmentation and Devanagari numerals in flags.
+  - Frontend: `Noto Sans Devanagari` in font stack, line-height 1.7 for `:lang(hi)`, `ResponseLanguage.tsx` segmented control, and sample buttons for Hindi and Hinglish.
+  - 42/42 backend pytest tests passing, 4/4 Vitest tests passing, clean Vite production build.
+
 ## Next implementation target
-Step E: Feature F4 (Hindi and Hinglish Support) — Devanagari digit normalization, UTF-16 code unit offset helper, language detection ('en', 'hi', 'hinglish'), script preservation in extraction and reasoning. Commit as `feat: hindi and hinglish support`.
+Step F: Feature F1 (Corrected Answer) — one extra model call after verdicts to rewrite answer retaining supported claims and softening/removing unsupported/uncertain claims, with strict server-side validation against hallucinated numbers/URLs. Commit as `feat: corrected answer`.
 
 ## Glossary
 - Claim: one atomic, checkable factual statement from the answer.

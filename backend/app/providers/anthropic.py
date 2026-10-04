@@ -52,6 +52,8 @@ Security & Integrity Rules:
   - "stance": must be one of "supports", "contradicts", or "neutral".
   - "quote": the EXACT verbatim sentence or clause copied character-for-character from that snippet that proves/disproves the claim, or null if neutral. Never paraphrase or translate.
 - "reasoning" must be concise: 40 words or fewer. Explain what was checked and why the evidence supports, contradicts, or fails to establish the claim.
+- Reasoning must be written in the language specified in <response_language> (Devanagari script for "hi", Roman script Hindi for "hinglish", English for "en").
+- Source quotes MUST stay verbatim in the original source's language. Never translate quotes.
 - If no evidence is provided or evidence does not mention the subject, verdict MUST be "uncertain".
 - Return ONLY valid JSON with no markdown formatting or prose.
 
@@ -102,10 +104,15 @@ class AnthropicProvider:
                     break
         return self._mock_extract(answer)
 
-    async def verify_claim(self, claim_text: str, evidence_items: List[Dict[str, Any]]) -> Dict[str, Any]:
-        """Verify an atomic claim against retrieved evidence."""
+    async def verify_claim(
+        self,
+        claim_text: str,
+        evidence_items: List[Dict[str, Any]],
+        response_language: str = "en"
+    ) -> Dict[str, Any]:
+        """Verify an atomic claim against retrieved evidence in requested response language."""
         if not self.client:
-            return self._mock_verify(claim_text, evidence_items)
+            return self._mock_verify(claim_text, evidence_items, response_language=response_language)
 
         evidence_str = ""
         for ev in evidence_items:
@@ -114,7 +121,7 @@ class AnthropicProvider:
             evidence_str += f"Snippet: {ev.get('snippet', '')}\n"
             evidence_str += f"</evidence>\n"
 
-        user_content = f"<claim>\n{claim_text}\n</claim>\n\n{evidence_str}"
+        user_content = f"<response_language>{response_language}</response_language>\n\n<claim>\n{claim_text}\n</claim>\n\n{evidence_str}"
 
         for attempt in range(2):
             try:
@@ -179,7 +186,8 @@ class AnthropicProvider:
     def _mock_extract(self, answer: str) -> List[Dict[str, str]]:
         """Deterministic rule-based extractor for testing and offline fallback."""
         from ..core.injection import scan_for_injection
-        sentences = [s.strip() for s in re.split(r"(?<=[.!?])\s+|(?<=[.!?][\"'\]\)])\s+", answer) if s.strip()]
+        # Support Latin sentence terminators (.!?) and Devanagari full stop (। and ॥)
+        sentences = [s.strip() for s in re.split(r"(?<=[।॥.!?])\s+|(?<=[।॥.!?][\"'\]\)])\s+", answer) if s.strip()]
         claims = []
         for s in sentences[:MAX_CLAIMS]:
             if len(s) < 10:
@@ -201,12 +209,23 @@ class AnthropicProvider:
                 })
         return claims
 
-    def _mock_verify(self, claim_text: str, evidence_items: List[Dict[str, Any]]) -> Dict[str, Any]:
-        """Deterministic mock verifier for offline tests and evaluation."""
+    def _mock_verify(
+        self,
+        claim_text: str,
+        evidence_items: List[Dict[str, Any]],
+        response_language: str = "en"
+    ) -> Dict[str, Any]:
+        """Deterministic mock verifier with multilingual reasoning for offline tests."""
         if not evidence_items:
+            if response_language == "hi":
+                reasoning = "इस दावे के लिए कोई प्रासंगिक साक्ष्य नहीं मिला।"
+            elif response_language == "hinglish":
+                reasoning = "Is claim ke liye koi relevant evidence nahi mila."
+            else:
+                reasoning = "No relevant evidence could be retrieved for this claim."
             return {
                 "verdict": "uncertain",
-                "reasoning": "No relevant evidence could be retrieved for this claim.",
+                "reasoning": reasoning,
                 "evidence": []
             }
 
@@ -219,7 +238,7 @@ class AnthropicProvider:
             matches = [w for w in words if w in snippet_lower]
             if len(matches) >= 2 or (len(words) == 1 and len(matches) == 1):
                 # Use snippet sentence as quote
-                sentences = re.split(r"(?<=[.!?])\s+", snippet)
+                sentences = re.split(r"(?<=[।॥.!?])\s+|(?<=[।॥.!?][\"'\]\)])\s+", snippet)
                 matched_items.append({
                     "id": ev.get("id"),
                     "stance": "supports",
@@ -227,14 +246,27 @@ class AnthropicProvider:
                 })
 
         if matched_items:
+            if response_language == "hi":
+                reasoning = "पुनर्प्राप्त स्रोत प्रत्यक्ष रूप से इस तथ्यात्मक दावे की पुष्टि करता है।"
+            elif response_language == "hinglish":
+                reasoning = "Retrieved sources is claim ko directly support karte hain."
+            else:
+                reasoning = "Retrieved source directly corroborates the factual claim."
             return {
                 "verdict": "supported",
-                "reasoning": "Retrieved source directly corroborates the factual claim.",
+                "reasoning": reasoning,
                 "evidence": matched_items[:1]
             }
 
+        if response_language == "hi":
+            reasoning = "पुनर्प्राप्त स्रोतों में दावे को सत्यापित करने के लिए पर्याप्त साक्ष्य नहीं हैं।"
+        elif response_language == "hinglish":
+            reasoning = "Retrieved sources me is claim ko verify karne ke liye sufficient evidence nahi hai."
+        else:
+            reasoning = "The retrieved sources do not contain sufficient evidence to verify."
+
         return {
             "verdict": "uncertain",
-            "reasoning": "The retrieved sources do not contain sufficient evidence to verify.",
+            "reasoning": reasoning,
             "evidence": []
         }

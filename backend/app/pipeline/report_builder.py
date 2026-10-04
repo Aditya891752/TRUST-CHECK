@@ -8,7 +8,9 @@ from ..api.schemas import ClaimSchema, SummarySchema, CheckResponse, Verdict, No
 def build_report(
     request_id: str,
     verified_claims: List[ClaimSchema],
-    notices: Optional[List[NoticeSchema]] = None
+    notices: Optional[List[NoticeSchema]] = None,
+    language: str = "en",
+    answer_normalized: str = ""
 ) -> CheckResponse:
     """
     Builds the final structured CheckResponse report from verified claims.
@@ -31,6 +33,8 @@ def build_report(
 
     return CheckResponse(
         request_id=request_id,
+        language=language,
+        answer_normalized=answer_normalized,
         summary=summary,
         claims=verified_claims,
         notices=notices or []

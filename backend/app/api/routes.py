@@ -17,8 +17,14 @@ async def check_answer(request: Request, payload: CheckRequest):
     req_id = getattr(request.state, "request_id", "req_unknown")
     notices: List[NoticeSchema] = []
 
-    # 1. Scan user input for prompt injection
-    input_matches = scan_for_injection(payload.answer)
+    # 0. Unicode NFC normalization and language detection (Feature F4)
+    from ..core.text import normalize_to_nfc, detect_language, resolve_response_language
+    answer_norm = normalize_to_nfc(payload.answer)
+    detected_lang = detect_language(answer_norm)
+    target_lang = resolve_response_language(payload.response_language, detected_lang)
+
+    # 1. Scan normalized input for prompt injection
+    input_matches = scan_for_injection(answer_norm)
     if input_matches:
         notices.append(NoticeSchema(
             code="instruction_in_input",
@@ -27,13 +33,14 @@ async def check_answer(request: Request, payload: CheckRequest):
         ))
     
     # 2. Claim extraction and query planning
-    claims = await extract_claims(payload.answer, payload.question)
+    claims = await extract_claims(answer_norm, payload.question)
     if not claims:
-        return CheckResponse(
-            request_id=req_id,
-            summary=SummarySchema(supported=0, uncertain=0, unsupported=0),
-            claims=[],
-            notices=notices
+        return build_report(
+            req_id,
+            [],
+            notices=notices,
+            language=detected_lang,
+            answer_normalized=answer_norm
         )
 
     # 3. Parallel evidence retrieval
@@ -69,8 +76,18 @@ async def check_answer(request: Request, payload: CheckRequest):
             excerpt=first_source_excerpt
         ))
 
-    # 5. Parallel verification with sanitized evidence
-    verified_claims = await verify_claims(claims, clean_evidence_by_claim)
+    # 5. Parallel verification with sanitized evidence and target response language
+    verified_claims = await verify_claims(
+        claims,
+        clean_evidence_by_claim,
+        response_language=target_lang
+    )
 
-    # 6. Structured report generation with notices
-    return build_report(req_id, verified_claims, notices=notices)
+    # 6. Structured report generation with notices, language, and normalized answer
+    return build_report(
+        req_id,
+        verified_claims,
+        notices=notices,
+        language=detected_lang,
+        answer_normalized=answer_norm
+    )

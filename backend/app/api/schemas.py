@@ -11,6 +11,7 @@ class Verdict(str, Enum):
 class CheckRequest(BaseModel):
     answer: str = Field(..., min_length=1, max_length=ANSWER_MAX_LENGTH, description="AI answer to check (1-4000 characters)")
     question: Optional[str] = Field(None, max_length=QUESTION_MAX_LENGTH, description="Optional original prompt/question (max 500 characters)")
+    response_language: Optional[str] = Field("auto", description="Response language: 'auto', 'en', 'hi', 'hinglish'")
 
     @field_validator("answer")
     @classmethod
@@ -26,6 +27,16 @@ class CheckRequest(BaseModel):
         if v is not None and not v.strip():
             return None
         return v
+
+    @field_validator("response_language")
+    @classmethod
+    def validate_response_language(cls, v: Optional[str]) -> str:
+        if v is None:
+            return "auto"
+        v_clean = v.strip().lower()
+        if v_clean not in ("auto", "en", "hi", "hinglish"):
+            raise ValueError("response_language must be one of: 'auto', 'en', 'hi', 'hinglish'")
+        return v_clean
 
 class SpanSchema(BaseModel):
     start: int = Field(..., ge=0, description="Start character index in the answer")
@@ -82,6 +93,8 @@ class NoticeSchema(BaseModel):
 
 class CheckResponse(BaseModel):
     request_id: str = Field(..., description="Unique tracking identifier for the request")
+    language: str = Field("en", description="Detected input language: 'en', 'hi', 'hinglish', or 'other'")
+    answer_normalized: str = Field("", description="Unicode NFC normalized answer text")
     summary: SummarySchema = Field(..., description="Aggregate counts per verdict")
     claims: List[ClaimSchema] = Field(default_factory=list, max_length=MAX_CLAIMS, description="Atomic claims and evaluations")
     notices: List[NoticeSchema] = Field(default_factory=list, description="Adversarial prompt injection notices or system notices")

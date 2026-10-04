@@ -106,16 +106,19 @@ def build_claim_flags(claim_text: str, model_flag_terms: Optional[List[Dict[str,
     # Sort by start offset
     combined.sort(key=lambda x: x["start"])
 
-    # Remove overlapping spans
+    # Remove overlapping spans and convert to UTF-16 code unit offsets
+    from ..core.text import codepoint_to_utf16_offset
     clean_flags: List[FlagSchema] = []
     last_end = -1
     for f in combined:
         if f["start"] >= last_end:
+            u16_start = codepoint_to_utf16_offset(claim_text, f["start"])
+            u16_end = codepoint_to_utf16_offset(claim_text, f["end"])
             clean_flags.append(FlagSchema(
                 type=f["type"],
                 text=f["text"],
-                start=f["start"],
-                end=f["end"]
+                start=u16_start,
+                end=u16_end
             ))
             last_end = f["end"]
             if len(clean_flags) >= 5:

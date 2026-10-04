@@ -123,7 +123,10 @@ export const ClaimCard: FC<ClaimCardProps> = ({ claim, index }) => {
         </span>
       </div>
 
-      <p style={{ fontSize: '16px', color: 'var(--color-ink)', lineHeight: '24px', marginBottom: 'var(--space-2)' }}>
+      <p
+        lang={/[\u0900-\u097F]/.test(claim.text) ? 'hi' : undefined}
+        style={{ fontSize: '16px', color: 'var(--color-ink)', lineHeight: '24px', marginBottom: 'var(--space-2)' }}
+      >
         {renderAnnotatedClaimText()}
       </p>
 
@@ -131,7 +134,10 @@ export const ClaimCard: FC<ClaimCardProps> = ({ claim, index }) => {
       <FlagChips flags={claim.flags} />
 
       {claim.reasoning && (
-        <p style={{ fontSize: '14px', color: 'var(--color-muted)', lineHeight: '20px', marginBottom: 'var(--space-2)' }}>
+        <p
+          lang={/[\u0900-\u097F]/.test(claim.reasoning) ? 'hi' : undefined}
+          style={{ fontSize: '14px', color: 'var(--color-muted)', lineHeight: '20px', marginBottom: 'var(--space-2)' }}
+        >
           {claim.reasoning}
         </p>
       )}

@@ -1,6 +1,7 @@
 export interface CheckRequest {
   answer: string;
   question?: string;
+  response_language?: 'auto' | 'en' | 'hi' | 'hinglish';
 }
 
 export interface Evidence {
@@ -38,6 +39,8 @@ export interface Notice {
 
 export interface CheckResponse {
   request_id: string;
+  language?: string;
+  answer_normalized?: string;
   summary: { supported: number; uncertain: number; unsupported: number };
   claims: Claim[];
   notices?: Notice[];
