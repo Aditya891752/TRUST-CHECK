@@ -73,15 +73,18 @@ Full table with checks in rules.md section C.
 ## Current status
 - Git repository initialized locally in `d:\Vibeathon` (`master` branch).
 - Phase 0 (Scope Freeze) completed.
-- Python 3.12 environment provisioned via `uv`; all 59 backend dependencies installed in `backend/.venv`.
-- Backend FastAPI app tested and verified: `pytest` passes 100%, `/api/health` returns 200 `{"status": "ok"}`.
-- Frontend React + Vite + TypeScript skeleton created with design tokens (`tokens.css`), types, API client, component stubs, and `vercel.json` security headers.
-- Dataset `ML MODEL DATASET` provided: 3,750 labeled pairs (1,250 supported, 1,250 uncertain, 1,250 unsupported) across 9 categories with train/val/test splits, ready for baseline evaluation & pipeline benchmarking in Phase 3.
+- Phase 1 (Repository and Deployment Skeleton) completed and committed (`0fbd8e9`).
+- Phase 2 (API Contract & Pydantic Validation) completed:
+  - `POST /api/v1/check` request and response schemas strictly typed and enforced.
+  - Whitespace-only, empty, and out-of-bounds inputs reject cleanly with HTTP 400 `bad_request`.
+  - Claims verdict rules enforced (supported requires evidence; fallback to uncertain).
+  - Standardized error handlers implemented for all exceptions, returning `{ "error": { "code", "message", "request_id" } }`.
+  - Request ID tracking middleware attached (`req_*`).
+  - 13/13 tests in pytest passing.
 - Pre-commit secret scanning hook active.
-- Phase 1 (Repository and Deployment Skeleton) completed.
 
 ## Next implementation target
-Phase 2: Formalize API contract, Pydantic schemas, validation boundaries, request IDs, and generic error shapes in `backend/app/api/schemas.py` and `backend/app/core/errors.py`. Commit as `feat: api contract`.
+Phase 3: Backend vertical slice. Implement claim extraction with search query planning, Tavily search provider interface, parallel verification, evaluation fixtures, and baseline benchmarking script. Commit as `feat: verification pipeline`.
 
 ## Glossary
 - Claim: one atomic, checkable factual statement from the answer.

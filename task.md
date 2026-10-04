@@ -4,8 +4,8 @@
 Build the smallest complete vertical slice first. Every task ends in a testable state and one commit. Do not start optional polish until the end-to-end check flow works. Deploy early so hosting surprises appear first, not last.
 
 ## State
-- Current phase: 2
-- Last verified: Phase 1 repository and deployment skeleton built & tested (FastAPI health returns 200, pytest passes, frontend skeleton in place)
+- Current phase: 3
+- Last verified: Phase 2 API contract and validation tested (13/13 pytest passed, generic 400 on invalid input, request ID tracking)
 - Blockers: none
 Update this block after every task.
 
@@ -27,9 +27,9 @@ Exit: the live Vercel page shows "API ok" from the Render URL. Committing a fake
 Commit: `chore: skeleton deployed`
 
 ## Phase 2: API contract
-- [ ] Define `POST /api/v1/check` request and response schemas (architecture.md section 5).
-- [ ] Add Pydantic validation, request IDs, max input length, and the generic error shape.
-- [ ] Add the config module for env vars, limits and model names. No key strings in code.
+- [x] Define `POST /api/v1/check` request and response schemas (architecture.md section 5).
+- [x] Add Pydantic validation, request IDs, max input length, and the generic error shape.
+- [x] Add the config module for env vars, limits and model names. No key strings in code.
 Exit: the contract can be tested without any AI provider. Invalid input returns a generic 400.
 Commit: `feat: api contract`
 
