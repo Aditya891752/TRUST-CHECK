@@ -4,8 +4,8 @@
 Build the smallest complete vertical slice first. Every task ends in a testable state and one commit. Do not start optional polish until the end-to-end check flow works. Deploy early so hosting surprises appear first, not last.
 
 ## State
-- Current phase: 4
-- Last verified: Phase 3 backend vertical slice tested (18/18 pytest passed, 5 req/min rate limit verified, run_eval.py verified with 5 fixtures and 3,750-fact dataset benchmark)
+- Current phase: 5
+- Last verified: Phase 4 frontend vertical slice verified (Vite builds cleanly, dist/ secret scan PASS, 4/4 Vitest tests pass, components match design tokens)
 - Blockers: none
 Update this block after every task.
 
@@ -46,13 +46,13 @@ Exit: a fixed sample answer returns structured claims and verdicts locally. A fa
 Commit: `feat: verification pipeline`
 
 ## Phase 4: Frontend vertical slice
-- [ ] Tokens, fonts and spacing scale from design.md.
-- [ ] Input form with counter, optional question, sample button, validation.
-- [ ] API client (`lib/api.ts`) and progress states.
-- [ ] Highlighted answer using claim spans.
-- [ ] Summary strip, claim cards, evidence details.
-- [ ] Error and empty states with Retry.
-- [ ] Wire to the Render API.
+- [x] Tokens, fonts and spacing scale from design.md.
+- [x] Input form with counter, optional question, sample button, validation.
+- [x] API client (`lib/api.ts`) and progress states.
+- [x] Highlighted answer using claim spans.
+- [x] Summary strip, claim cards, evidence details.
+- [x] Error and empty states with Retry.
+- [x] Wire to the Render API.
 Exit: a real request travels from browser to Render and back, and the full report renders.
 Commit: `feat: ui`
 

@@ -75,19 +75,22 @@ Full table with checks in rules.md section C.
 - Phase 0 (Scope Freeze) completed.
 - Phase 1 (Repository and Deployment Skeleton) completed and committed (`0fbd8e9`).
 - Phase 2 (API Contract & Pydantic Validation) completed and committed (`e5af766`).
-- Phase 3 (Backend Vertical Slice) completed:
-  - Claim extraction with verbatim quote location and character span calculation implemented (`claim_extractor.py`).
-  - SearchProvider interface and Tavily adapter implemented with bounded timeouts and resilient error recovery (`search.py`).
-  - Parallel per-claim verification with isolated error fallback implemented (`verifier.py`).
-  - Full pipeline wired into `POST /api/v1/check` producing structured `CheckResponse` reports.
-  - Rate limiting strictly verified: 5 req/min cap triggers HTTP 429 on the 6th rapid call.
-  - Evaluation fixtures created (`eval_fixtures.json`) covering supported, mixed, unsupported, uncertain, and injection test cases.
-  - Benchmark script created (`run_eval.py`) and verified against the 3,750-fact dataset (`ML MODEL DATASET/`).
-  - 18/18 pytest test cases passing 100%.
+- Phase 3 (Backend Vertical Slice) completed and committed (`7aefe14`).
+- Phase 4 (Frontend Vertical Slice) completed:
+  - Design tokens strictly implemented in `tokens.css` with 4px grid and WCAG AA contrast colors.
+  - Interactive input form (`CheckForm.tsx`) with character counter, validation, sample answer pre-fill, and instant button hover swap.
+  - Progress bar (`ProgressStatus.tsx`) with stage labels.
+  - Summary strip (`SummaryStrip.tsx`) with single-line verdict breakdown and proportional solid segmented bar.
+  - Highlighted answer component (`HighlightedAnswer.tsx`) mapping claim character spans with interactive click-to-scroll to claims.
+  - Claim cards (`ClaimCard.tsx`) with dual text + shape markers (`●`, `◐`, `■`) and expandable evidence drawers (`EvidenceList.tsx`).
+  - Error notice with request ID and Retry action (`ErrorNotice.tsx`).
+  - Frontend compiled and bundled cleanly with Vite (`dist/` verified).
+  - Secret scanning on `dist/` verified zero leaked API keys.
+  - Vitest test suite passing 100%.
 - Pre-commit secret scanning hook active.
 
 ## Next implementation target
-Phase 4: Frontend vertical slice. Build out interactive React components matching design tokens: input form with char counter, sample answer button, progress states, highlighted answer with colored span tags, summary strip, and claim cards with evidence drawer. Wire to backend. Commit as `feat: ui`.
+Phase 5: Design pass & accessibility audit. Verify typography, spacing scale, zero banned patterns (rules.md section B), mobile viewport responsiveness, keyboard navigation, and contrast ratios. Commit as `chore: design pass`.
 
 ## Glossary
 - Claim: one atomic, checkable factual statement from the answer.
