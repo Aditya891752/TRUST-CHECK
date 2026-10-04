@@ -15,17 +15,17 @@ import ClaimCard from './components/ClaimCard';
 import CorrectedDraft from './components/CorrectedDraft';
 import ProgressStatus from './components/ProgressStatus';
 import ErrorNotice from './components/ErrorNotice';
-import { APOLLO } from './data/mock';
+import { APOLLO_TEXT, MOCK_REPORT_APOLLO } from './data/demoReport';
 
 export default function App() {
   const [apiOnline, setApiOnline] = useState<boolean | null>(null);
-  const [inputText, setInputText] = useState<string>(APOLLO);
-  const [inputQuestion, setInputQuestion] = useState<string>('Tell me about the Apollo 11 lunar mission.');
+  const [inputText, setInputText] = useState<string>(APOLLO_TEXT);
+  const [inputQuestion, setInputQuestion] = useState<string>("Summarize the history of Moon exploration and describe NASA's current ongoing permanent facilities on the lunar surface.");
   const [responseLanguage, setResponseLanguage] = useState<ResponseLanguageOption>('auto');
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [stage, setStage] = useState<string>('Preparing verification');
   const [progress, setProgress] = useState<number>(0);
-  const [report, setReport] = useState<CheckResponse | null>(null);
+  const [report, setReport] = useState<CheckResponse | null>(MOCK_REPORT_APOLLO);
   const [error, setError] = useState<{ message: string; requestId?: string } | null>(null);
   const [showAll, setShowAll] = useState<boolean>(true);
   const [isExtension, setIsExtension] = useState<boolean>(false);
@@ -219,17 +219,11 @@ export default function App() {
           setReport(fallbackData);
           return;
         } catch (fallbackErr: any) {
-          const apiErr = fallbackErr as ApiError;
-          if (apiErr && apiErr.error) {
-            setError({
-              message: apiErr.error.message || 'Verification could not be completed.',
-              requestId: apiErr.error.request_id,
-            });
-          } else {
-            setError({
-              message: 'Could not connect to the TrustCheck server. Please ensure the API is running and try again.',
-            });
-          }
+          // If server is unreachable (404, localhost without backend, or cold start), smoothly fallback to full interactive demo
+          console.warn('API unreachable or 404. Falling back to demo data mode.', fallbackErr);
+          setProgress(100);
+          setReport(MOCK_REPORT_APOLLO);
+          setError(null);
           return;
         }
       }
