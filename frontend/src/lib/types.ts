@@ -25,7 +25,7 @@ export interface Claim {
   id: string;
   text: string;
   span: { start: number; end: number } | null;
-  verdict: 'supported' | 'uncertain' | 'unsupported';
+  verdict?: 'supported' | 'uncertain' | 'unsupported' | null;
   reasoning: string;
   evidence: Evidence[];
   flags?: Flag[];

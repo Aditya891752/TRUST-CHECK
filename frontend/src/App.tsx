@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import './styles/tokens.css';
 import { checkHealth, checkAnswer } from './lib/api';
-import { CheckResponse, ApiError } from './lib/types';
+import { checkStream } from './lib/stream';
+import { CheckResponse, ApiError, Claim } from './lib/types';
 import CheckForm from './components/CheckForm';
 import ProgressStatus from './components/ProgressStatus';
 import ErrorNotice from './components/ErrorNotice';
@@ -23,55 +24,172 @@ function App() {
   const [error, setError] = useState<{ message: string; requestId?: string } | null>(null);
   const [lastPayload, setLastPayload] = useState<{ answer: string; question?: string; responseLanguage?: ResponseLanguageOption } | null>(null);
 
+  const abortControllerRef = useRef<AbortController | null>(null);
+
   useEffect(() => {
     checkHealth().then((ok) => setApiOnline(ok));
   }, []);
 
+  const handleCancel = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+    setIsLoading(false);
+    setStage('Verification cancelled');
+  };
+
   const handleCheck = async (answer: string, question?: string, responseLanguage?: ResponseLanguageOption) => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
     setIsLoading(true);
     setError(null);
     setReport(null);
     setCurrentAnswer(answer);
     setLastPayload({ answer, question, responseLanguage });
 
-    // Stage 1: Extraction
-    setStage('Extracting atomic factual claims...');
-    setProgress(25);
+    setStage('Initializing verification stream...');
+    setProgress(10);
 
-    const progressTimer1 = setTimeout(() => {
-      setStage('Searching for external web evidence...');
-      setProgress(55);
-    }, 1200);
-
-    const progressTimer2 = setTimeout(() => {
-      setStage('Comparing claims against retrieved evidence...');
-      setProgress(85);
-    }, 2800);
+    let claimsReceived = false;
 
     try {
-      const data = await checkAnswer({
-        answer,
-        question,
-        response_language: responseLanguage,
-      });
-      setProgress(100);
-      setReport(data);
+      await checkStream(
+        {
+          answer,
+          question,
+          response_language: responseLanguage,
+        },
+        {
+          onMeta: (meta) => {
+            setStage('Extracting atomic factual claims...');
+            setProgress(25);
+            setReport((prev) => ({
+              request_id: meta.request_id,
+              language: meta.language,
+              answer_normalized: meta.answer_normalized,
+              summary: prev?.summary || { supported: 0, uncertain: 0, unsupported: 0 },
+              claims: prev?.claims || [],
+              notices: prev?.notices || [],
+              corrected_answer: prev?.corrected_answer || null,
+            }));
+          },
+          onNotice: (notice) => {
+            setReport((prev) => {
+              if (!prev) return prev;
+              return {
+                ...prev,
+                notices: [...(prev.notices || []), notice],
+              };
+            });
+          },
+          onClaims: (claims) => {
+            claimsReceived = true;
+            setStage(`Verifying ${claims.length} claims in parallel...`);
+            setProgress(35);
+            setReport((prev) => ({
+              request_id: prev?.request_id || '',
+              language: prev?.language,
+              answer_normalized: prev?.answer_normalized || answer,
+              summary: { supported: 0, uncertain: 0, unsupported: 0 },
+              claims,
+              notices: prev?.notices || [],
+              corrected_answer: null,
+            }));
+          },
+          onClaimResult: (claimResult: Claim) => {
+            setReport((prev) => {
+              if (!prev) return prev;
+              const updatedClaims = prev.claims.map((c) =>
+                c.id === claimResult.id ? claimResult : c
+              );
+              const supported = updatedClaims.filter((c) => c.verdict === 'supported').length;
+              const uncertain = updatedClaims.filter((c) => c.verdict === 'uncertain').length;
+              const unsupported = updatedClaims.filter((c) => c.verdict === 'unsupported').length;
+              const verifiedCount = updatedClaims.filter((c) => Boolean(c.verdict)).length;
+              const totalClaims = updatedClaims.length || 1;
+
+              const pct = 35 + Math.round((verifiedCount / totalClaims) * 55);
+              setProgress(Math.min(pct, 95));
+              setStage(`Verified ${verifiedCount} of ${totalClaims} claims...`);
+
+              return {
+                ...prev,
+                claims: updatedClaims,
+                summary: { supported, uncertain, unsupported },
+              };
+            });
+          },
+          onCorrectedAnswer: (corrected) => {
+            setReport((prev) => (prev ? { ...prev, corrected_answer: corrected } : prev));
+          },
+          onDone: (summary) => {
+            setProgress(100);
+            setStage('Verification complete');
+            setReport((prev) => (prev ? { ...prev, summary } : prev));
+          },
+          onError: (streamErr) => {
+            setError({
+              message: streamErr.message || 'Verification stream error.',
+              requestId: streamErr.request_id,
+            });
+          },
+        },
+        controller.signal
+      );
     } catch (err: any) {
+      if (controller.signal.aborted) {
+        return;
+      }
+
+      // If stream failed before claims were received, fallback to standard non-streaming verification once
+      if (!claimsReceived) {
+        setStage('Connecting via standard verification...');
+        try {
+          const fallbackData = await checkAnswer({
+            answer,
+            question,
+            response_language: responseLanguage,
+          });
+          setProgress(100);
+          setReport(fallbackData);
+          return;
+        } catch (fallbackErr: any) {
+          const apiErr = fallbackErr as ApiError;
+          if (apiErr && apiErr.error) {
+            setError({
+              message: apiErr.error.message || 'Verification could not be completed.',
+              requestId: apiErr.error.request_id,
+            });
+          } else {
+            setError({
+              message: 'Could not connect to the TrustCheck server. Please ensure the API is running and try again.',
+            });
+          }
+          return;
+        }
+      }
+
       const apiErr = err as ApiError;
       if (apiErr && apiErr.error) {
         setError({
-          message: apiErr.error.message || 'Verification could not be completed.',
+          message: apiErr.error.message || 'Stream verification could not be completed.',
           requestId: apiErr.error.request_id,
         });
       } else {
         setError({
-          message: 'Could not connect to the TrustCheck server. Please ensure the API is running and try again.',
+          message: err?.message || 'Verification stream interrupted. Please retry.',
         });
       }
     } finally {
-      clearTimeout(progressTimer1);
-      clearTimeout(progressTimer2);
       setIsLoading(false);
+      if (abortControllerRef.current === controller) {
+        abortControllerRef.current = null;
+      }
     }
   };
 
@@ -143,7 +261,7 @@ function App() {
         <CheckForm onSubmit={handleCheck} isLoading={isLoading} />
 
         {/* Progress State */}
-        {isLoading && <ProgressStatus stage={stage} progressPercent={progress} />}
+        {isLoading && <ProgressStatus stage={stage} progressPercent={progress} onCancel={handleCancel} />}
 
         {/* Error Notice */}
         {error && <ErrorNotice message={error.message} requestId={error.requestId} onRetry={handleRetry} />}

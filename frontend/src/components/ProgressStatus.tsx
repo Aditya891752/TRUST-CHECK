@@ -1,9 +1,10 @@
 interface ProgressStatusProps {
   stage: string; // e.g. "Extracting claims", "Searching for evidence", "Verifying claims"
   progressPercent: number; // 0 to 100
+  onCancel?: () => void;
 }
 
-export const ProgressStatus: React.FC<ProgressStatusProps> = ({ stage, progressPercent }) => {
+export const ProgressStatus: React.FC<ProgressStatusProps> = ({ stage, progressPercent, onCancel }) => {
   return (
     <div
       style={{
@@ -15,11 +16,31 @@ export const ProgressStatus: React.FC<ProgressStatusProps> = ({ stage, progressP
       }}
       aria-live="polite"
     >
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 'var(--space-2)' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-2)' }}>
         <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--color-ink)' }}>{stage}</span>
-        <span style={{ fontSize: '14px', color: 'var(--color-muted)', fontFamily: 'var(--font-mono)' }}>
-          {progressPercent}%
-        </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
+          <span style={{ fontSize: '14px', color: 'var(--color-muted)', fontFamily: 'var(--font-mono)' }}>
+            {progressPercent}%
+          </span>
+          {onCancel && (
+            <button
+              type="button"
+              onClick={onCancel}
+              style={{
+                fontSize: '12px',
+                padding: '2px 8px',
+                borderRadius: 'var(--radius)',
+                border: '1px solid var(--color-line)',
+                backgroundColor: 'var(--color-bg)',
+                color: 'var(--color-muted)',
+                cursor: 'pointer',
+              }}
+              title="Cancel verification"
+            >
+              Cancel
+            </button>
+          )}
+        </div>
       </div>
       <div
         style={{

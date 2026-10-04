@@ -160,9 +160,17 @@ Full table with checks in rules.md section C.
   - Added `CORRECTION_ENABLED` toggle in `config.py`.
   - Frontend: `CorrectedAnswer.tsx` rendered below claims list with clean draft copy button, textual action badges (`[Softened]`, `[Removed]`), and 'No changes needed' banner for all-supported claims.
   - 49/49 backend pytest tests passing, 4/4 Vitest tests passing, clean Vite build.
+- Feature F2 (Live Streaming SSE Results) completed:
+  - Backend streaming endpoint `POST /api/v1/check/stream` streaming Server-Sent Events (`meta`, `notice`, `claims`, `claim_result`, `corrected_answer`, `done`, `error`) with `: ping` keepalive.
+  - Concurrent stream limit per IP (`MAX_CONCURRENT_STREAMS_PER_IP = 2`) with slot acquire/release and 30-second stream timeout protection.
+  - Client disconnect cancellation handling via `request.is_disconnected()`.
+  - Parity preserved with existing non-streaming `POST /api/v1/check` endpoint.
+  - Robust client SSE parser in `stream.ts` handling chunk boundaries and ping comments with Vitest coverage.
+  - Frontend `App.tsx` live progressive updates: real-time per-card verdict rendering, live summary updates, Cancel button via `AbortController`, and automatic single fallback to standard verification if stream fails before claims arrive.
+  - 54/54 backend pytest tests passing, 7/7 frontend Vitest tests passing, clean Vite build.
 
-## Next implementation target
-Step G: Feature F2 (Live Streaming SSE Results) — SSE endpoint `POST /api/v1/check/stream` streaming progressive events (`started`, `claim_discovered`, `evidence_retrieved`, `claim_result`, `notice`, `corrected_answer`, `done`, `error`) with concurrent stream limit, while keeping non-streaming endpoint as fallback. Commit as `feat: live streaming`.
+## Feature Pack Status
+All 6 feature pack items (F6, F3, F5, F4, F1, F2) completed and verified across local backend and frontend suites.
 
 ## Glossary
 - Claim: one atomic, checkable factual statement from the answer.

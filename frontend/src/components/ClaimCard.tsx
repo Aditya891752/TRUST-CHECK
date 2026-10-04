@@ -37,7 +37,7 @@ export const ClaimCard: FC<ClaimCardProps> = ({ claim, index }) => {
           bg: 'var(--color-bg)',
           ink: 'var(--color-muted)',
           marker: '○',
-          label: 'Unverified',
+          label: 'Verifying...',
         };
     }
   };

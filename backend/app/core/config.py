@@ -10,6 +10,9 @@ class Settings(BaseSettings):
     DAILY_REQUEST_CAP: int = 100
     CORRECTION_ENABLED: bool = True
     CORRECTION_TIMEOUT: float = 12.0
+    STREAMING_ENABLED: bool = True
+    MAX_CONCURRENT_STREAMS_PER_IP: int = 2
+    STREAM_TIMEOUT_SECONDS: float = 30.0
 
     @property
     def cors_origins(self) -> List[str]:
