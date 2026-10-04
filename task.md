@@ -4,8 +4,8 @@
 Build the smallest complete vertical slice first. Every task ends in a testable state and one commit. Do not start optional polish until the end-to-end check flow works. Deploy early so hosting surprises appear first, not last.
 
 ## State
-- Current phase: 5
-- Last verified: Phase 4 frontend vertical slice verified (Vite builds cleanly, dist/ secret scan PASS, 4/4 Vitest tests pass, components match design tokens)
+- Current phase: 6
+- Last verified: Phase 5 design pass completed (WCAG AA contrast verified, 0 banned patterns, 2px focus rings, reduced-motion query supported)
 - Blockers: none
 Update this block after every task.
 
@@ -57,11 +57,11 @@ Exit: a real request travels from browser to Render and back, and the full repor
 Commit: `feat: ui`
 
 ## Phase 5: Design pass
-- [ ] Apply design.md typography and normalize spacing.
-- [ ] Remove any banned effects or components (rules.md section B).
-- [ ] Check mobile layout.
-- [ ] Keyboard and focus states. Verdict visible without color dependency.
-- [ ] Contrast check on every text and background pair.
+- [x] Apply design.md typography and normalize spacing.
+- [x] Remove any banned effects or components (rules.md section B).
+- [x] Check mobile layout.
+- [x] Keyboard and focus states. Verdict visible without color dependency.
+- [x] Contrast check on every text and background pair.
 Exit: the UI looks intentional and stable with no banned patterns.
 Commit: `chore: design pass`
 

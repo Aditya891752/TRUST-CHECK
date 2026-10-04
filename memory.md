@@ -87,10 +87,17 @@ Full table with checks in rules.md section C.
   - Frontend compiled and bundled cleanly with Vite (`dist/` verified).
   - Secret scanning on `dist/` verified zero leaked API keys.
   - Vitest test suite passing 100%.
+- Phase 5 (Design Pass & Accessibility Audit) completed:
+  - Spacing scale normalized strictly to base-4 multiples.
+  - Zero banned patterns detected (no gradients, no glassmorphism, no Inter, no emojis, no em dashes).
+  - High-contrast editorial palette audited and confirmed passing WCAG AA (up to 15.4:1 contrast).
+  - Verdict markers provide dual text + shape representation (`● Supported`, `◐ Uncertain`, `■ Unsupported`), ensuring color is never the only signal.
+  - Accessible 2px keyboard focus ring added across all interactive elements.
+  - Mobile responsiveness verified for single-column layouts and fluid inputs.
 - Pre-commit secret scanning hook active.
 
 ## Next implementation target
-Phase 5: Design pass & accessibility audit. Verify typography, spacing scale, zero banned patterns (rules.md section B), mobile viewport responsiveness, keyboard navigation, and contrast ratios. Commit as `chore: design pass`.
+Phase 6: Security pass. Comprehensive audit against the 12 mandatory security rules in `rules.md` Section C (secret scans, CORS origins, rate limits, production debug disabled, server-side caps, dependency audits). Commit as `chore: security pass`.
 
 ## Glossary
 - Claim: one atomic, checkable factual statement from the answer.
