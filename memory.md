@@ -113,9 +113,10 @@ Full table with checks in rules.md section C.
   - Final acceptance criteria confirmed: paste -> claims -> evidence -> verdicts -> reasoning -> highlights -> UI display.
   - Initial baseline completed on `master` branch.
 - Pre-commit secret scanning hook active.
+- Branch `improvements-and-redesign` successfully created and checked out from `master` for all subsequent UI templates, benchmarking refinements, and feature enhancements.
 
 ## Next implementation target
-Create separate branch `improvements-and-redesign` per user instructions for future iterations, improvements, and custom UI enhancements. All core MVP tasks complete.
+Ready for user input on improvements, additional dataset benchmarking runs, or integrating user's final frontend template.
 
 ## Glossary
 - Claim: one atomic, checkable factual statement from the answer.
