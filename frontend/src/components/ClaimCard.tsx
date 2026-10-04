@@ -1,12 +1,14 @@
+import type { FC, ReactNode } from 'react';
 import { Claim } from '../lib/types';
 import EvidenceList from './EvidenceList';
+import FlagChips from './FlagChips';
 
 interface ClaimCardProps {
   claim: Claim;
   index: number;
 }
 
-export const ClaimCard: React.FC<ClaimCardProps> = ({ claim, index }) => {
+export const ClaimCard: FC<ClaimCardProps> = ({ claim, index }) => {
   const getVerdictStyle = (verdict: Claim['verdict']) => {
     switch (verdict) {
       case 'supported':
@@ -42,6 +44,52 @@ export const ClaimCard: React.FC<ClaimCardProps> = ({ claim, index }) => {
 
   const style = getVerdictStyle(claim.verdict);
 
+  // Underline flagged terms within the claim text
+  const renderAnnotatedClaimText = () => {
+    if (!claim.flags || claim.flags.length === 0) {
+      return claim.text;
+    }
+
+    const validFlags = claim.flags
+      .filter((f) => f.start >= 0 && f.end <= claim.text.length && f.start < f.end)
+      .sort((a, b) => a.start - b.start);
+
+    if (validFlags.length === 0) {
+      return claim.text;
+    }
+
+    const nodes: ReactNode[] = [];
+    let lastPos = 0;
+
+    validFlags.forEach((flag, fIdx) => {
+      if (flag.start > lastPos) {
+        nodes.push(claim.text.substring(lastPos, flag.start));
+      }
+      nodes.push(
+        <span
+          key={`flag-underlined-${flag.start}-${fIdx}`}
+          style={{
+            textDecoration: 'underline',
+            textDecorationThickness: '2px',
+            textDecorationColor: 'var(--color-primary)',
+            textUnderlineOffset: '3px',
+            fontWeight: 700,
+          }}
+          title={`${flag.type}: ${flag.text}`}
+        >
+          {claim.text.substring(flag.start, flag.end)}
+        </span>
+      );
+      lastPos = Math.max(lastPos, flag.end);
+    });
+
+    if (lastPos < claim.text.length) {
+      nodes.push(claim.text.substring(lastPos));
+    }
+
+    return nodes;
+  };
+
   return (
     <article
       id={`claim-${claim.id}`}
@@ -75,9 +123,12 @@ export const ClaimCard: React.FC<ClaimCardProps> = ({ claim, index }) => {
         </span>
       </div>
 
-      <p style={{ fontSize: '16px', fontWeight: 600, color: 'var(--color-ink)', lineHeight: '24px', marginBottom: 'var(--space-3)' }}>
-        {claim.text}
+      <p style={{ fontSize: '16px', color: 'var(--color-ink)', lineHeight: '24px', marginBottom: 'var(--space-2)' }}>
+        {renderAnnotatedClaimText()}
       </p>
+
+      {/* Flag Chips per F6 */}
+      <FlagChips flags={claim.flags} />
 
       {claim.reasoning && (
         <p style={{ fontSize: '14px', color: 'var(--color-muted)', lineHeight: '20px', marginBottom: 'var(--space-2)' }}>

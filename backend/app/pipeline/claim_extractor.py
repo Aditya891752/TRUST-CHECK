@@ -38,12 +38,18 @@ async def extract_claims(
             if start_pos != -1:
                 span = SpanSchema(start=start_pos, end=start_pos + len(quote))
 
+        # Extract number, date, and name flags (Feature F6)
+        from .flags import build_claim_flags
+        model_flags = item.get("flag_terms", [])
+        flags = build_claim_flags(text, model_flags)
+
         extracted.append({
             "id": claim_id,
             "text": text,
             "quote": quote,
             "span": span,
-            "search_query": search_query or text
+            "search_query": search_query or text,
+            "flags": flags
         })
 
     return extracted

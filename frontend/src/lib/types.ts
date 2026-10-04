@@ -11,6 +11,13 @@ export interface Evidence {
   retrieved_at: string;
 }
 
+export interface Flag {
+  type: 'date' | 'number' | 'name' | string;
+  text: string;
+  start: number;
+  end: number;
+}
+
 export interface Claim {
   id: string;
   text: string;
@@ -18,6 +25,7 @@ export interface Claim {
   verdict: 'supported' | 'uncertain' | 'unsupported';
   reasoning: string;
   evidence: Evidence[];
+  flags?: Flag[];
 }
 
 export interface CheckResponse {

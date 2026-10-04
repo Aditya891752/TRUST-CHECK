@@ -114,11 +114,17 @@ Full table with checks in rules.md section C.
   - Initial baseline completed on `master` branch.
 - Pre-commit secret scanning hook active.
 - Branch `improvements-and-redesign` active.
-- Trained Machine Learning Model (`trustcheck_trained_model`) extracted to `backend/models/trustcheck_trained_model/` (fine-tuned DeBERTa-v2 for sequence classification with weights in `model.safetensors`, `config.json`, `tokenizer.json`).
-- Added local inference engine in `backend/app/pipeline/local_ml_verifier.py`. Large binary checkpoints and zip files protected via `.gitignore`.
+- Trained Machine Learning Model (`trustcheck_trained_model`) extracted to `backend/models/trustcheck_trained_model/`.
+- Local inference engine implemented in `backend/app/pipeline/local_ml_verifier.py`.
+- Feature F6 (Number, Date, and Name Flags) completed:
+  - Regex + Model term detection for dates, numbers, and names in `pipeline/flags.py`.
+  - Exact-match downgrade check implemented in `verifier.py` (missing figures downgrade `supported` to `uncertain`).
+  - FlagSchema and flags added to API contract.
+  - Frontend `FlagChips.tsx` created and underlined terms rendered in `ClaimCard.tsx`.
+  - 24/24 backend pytest tests passing, 4/4 Vitest tests passing, Vite builds cleanly.
 
 ## Next implementation target
-Ready for user's final frontend design/template and further UI enhancements.
+Step C: Feature F3 (Exact Source Quotes) — stance (`supports`, `refutes`, `unrelated`), quote extraction, server-side substring validation, and `QuoteBlock.tsx`. Commit as `feat: exact source quotes`.
 
 ## Glossary
 - Claim: one atomic, checkable factual statement from the answer.

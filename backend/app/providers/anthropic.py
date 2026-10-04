@@ -15,6 +15,7 @@ For each claim, you must identify:
 1. "text": The atomic, self-contained factual statement.
 2. "quote": The EXACT verbatim substring from the answer containing this statement.
 3. "search_query": A focused, effective search query to retrieve web evidence to verify this claim.
+4. "flag_terms": Array of exact dates, numbers, or names found in the claim (e.g. [{"type": "date", "text": "1991"}, {"type": "name", "text": "Guido van Rossum"}]).
 
 Rules:
 - Do not extract greetings, rhetorical questions, headings, or purely subjective opinions.
@@ -28,7 +29,10 @@ Output JSON format:
     {
       "text": "string",
       "quote": "string",
-      "search_query": "string"
+      "search_query": "string",
+      "flag_terms": [
+        { "type": "date" | "number" | "name", "text": "string" }
+      ]
     }
   ]
 }"""

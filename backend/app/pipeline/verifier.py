@@ -51,10 +51,23 @@ async def verify_claims(
             }
             verdict = verdict_map.get(verdict_str, Verdict.UNCERTAIN)
 
+            flags = claim.get("flags", [])
+
             # Enforce rule: supported requires at least one cited evidence item
             if verdict == Verdict.SUPPORTED and not cited_evidence:
                 verdict = Verdict.UNCERTAIN
                 reasoning = "Retrieved evidence was insufficient to firmly support the claim."
+
+            # Feature F6: Exact-match check for dates and numbers
+            if verdict == Verdict.SUPPORTED and flags:
+                from .flags import check_exact_match_downgrade
+                snippets = [ev.snippet for ev in cited_evidence]
+                match_res = check_exact_match_downgrade(flags, snippets)
+                if match_res["downgrade"]:
+                    verdict = Verdict.UNCERTAIN
+                    reasoning = f"{reasoning} {match_res['note']}".strip()
+                elif match_res["note"]:
+                    reasoning = f"{reasoning} {match_res['note']}".strip()
 
             return ClaimSchema(
                 id=claim_id,
@@ -62,7 +75,8 @@ async def verify_claims(
                 span=span,
                 verdict=verdict,
                 reasoning=reasoning,
-                evidence=cited_evidence
+                evidence=cited_evidence,
+                flags=flags
             )
         except Exception:
             # Isolated claim failure fallback

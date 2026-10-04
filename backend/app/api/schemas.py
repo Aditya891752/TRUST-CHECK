@@ -39,6 +39,12 @@ class SpanSchema(BaseModel):
             raise ValueError("Span end index must be greater than or equal to start index.")
         return end
 
+class FlagSchema(BaseModel):
+    type: str = Field(..., description="Flag type: 'date', 'number', or 'name'")
+    text: str = Field(..., description="Flagged term value")
+    start: int = Field(..., ge=0, description="Start character offset in claim text")
+    end: int = Field(..., ge=0, description="End character offset in claim text")
+
 class EvidenceSchema(BaseModel):
     id: str = Field(..., description="Stable local evidence identifier (e.g. e1, e2)")
     title: str = Field("", description="Title of the source webpage")
@@ -53,6 +59,7 @@ class ClaimSchema(BaseModel):
     verdict: Verdict = Field(..., description="Verification state: supported, uncertain, or unsupported")
     reasoning: str = Field(..., max_length=500, description="Plain language explanation (40 words or fewer)")
     evidence: List[EvidenceSchema] = Field(default_factory=list, description="Retrieved evidence items cited for this claim")
+    flags: List[FlagSchema] = Field(default_factory=list, description="Extracted dates, numbers, and names")
 
     @model_validator(mode="after")
     def check_supported_has_evidence(self) -> "ClaimSchema":
