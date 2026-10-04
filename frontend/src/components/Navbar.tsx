@@ -1,5 +1,5 @@
 import React from 'react';
-import { Search, ChevronDown } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 
 interface NavbarProps {
   apiOnline?: boolean | null;
@@ -8,20 +8,17 @@ interface NavbarProps {
 
 export const Navbar: React.FC<NavbarProps> = ({ apiOnline, latencyMs = 184 }) => {
   return (
-    <header className="bg-white border-b border-slate-100/80 px-4 sm:px-6 py-3 sticky top-0 z-30 shadow-[0_1px_3px_rgba(0,0,0,0.03)]">
-      <div className="max-w-[720px] mx-auto flex items-center justify-between">
-        {/* Left: Brand + API Status Pill */}
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2">
-            <span className="text-xl font-bold tracking-tight text-slate-900 font-sans">
-              TrustCheck
-            </span>
+    <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200 px-4 py-2.5 transition-shadow shadow-xs">
+      <div className="max-w-md mx-auto flex items-center justify-between">
+        {/* Logo and App Identity */}
+        <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-1.5">
+            <span className="text-lg font-bold tracking-tight text-slate-900">TrustCheck</span>
           </div>
-
-          {/* API live status pill */}
-          <div className="inline-flex items-center gap-1.5 rounded-full bg-slate-50 border border-slate-200/80 px-2.5 py-1 text-xs text-slate-600 font-medium">
+          {/* Status indicator pill */}
+          <div className="flex items-center bg-slate-100 px-2 py-0.5 rounded-full text-[11px] font-medium text-slate-600 space-x-1.5 border border-slate-200/60">
             <span
-              className={`h-2 w-2 rounded-full ${
+              className={`inline-block w-1.5 h-1.5 rounded-full ${
                 apiOnline === true
                   ? 'bg-emerald-500 animate-pulse'
                   : apiOnline === false
@@ -30,26 +27,28 @@ export const Navbar: React.FC<NavbarProps> = ({ apiOnline, latencyMs = 184 }) =>
               }`}
             />
             <span>{apiOnline === true ? 'API live' : apiOnline === false ? 'API offline' : 'Connecting...'}</span>
-            <span className="text-slate-400 font-mono text-[11px]">• {latencyMs}ms</span>
+            <span className="text-slate-300">•</span>
+            <span className="font-mono text-slate-500">{latencyMs}ms</span>
           </div>
         </div>
 
-        {/* Right: Search button + Chevron down */}
-        <div className="flex items-center gap-2">
+        {/* Right actions: User avatar / menu trigger */}
+        <div className="flex items-center space-x-2">
           <button
+            aria-label="Account profile"
+            className="flex items-center space-x-1.5 p-1 rounded-full hover:bg-slate-100 transition"
             type="button"
-            className="h-8 w-8 rounded-full bg-slate-900 text-white flex items-center justify-center hover:bg-slate-800 transition-colors shadow-xs"
-            title="Search verification"
           >
-            <Search size={14} className="stroke-[2.5]" />
-          </button>
-          <button
-            type="button"
-            className="text-slate-400 hover:text-slate-700 p-1 transition-colors"
-          >
-            <ChevronDown size={16} />
+            <div className="w-7 h-7 rounded-full bg-slate-800 text-white flex items-center justify-center font-bold text-xs shadow-xs">
+              G
+            </div>
+            <ChevronDown size={14} className="text-slate-500" />
           </button>
         </div>
+      </div>
+      {/* Subtitle badge line */}
+      <div className="max-w-md mx-auto">
+        <p className="text-[11px] text-slate-500 mt-1 truncate">Transparent AI answer reliability checker</p>
       </div>
     </header>
   );

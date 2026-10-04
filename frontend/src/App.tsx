@@ -268,13 +268,13 @@ export default function App() {
   const shownClaims = report ? (showAll ? report.claims : report.claims.slice(0, 3)) : [];
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] font-sans text-slate-900 selection:bg-emerald-100 selection:text-emerald-900 pb-24">
+    <div className="min-h-screen bg-slate-50 font-sans text-slate-900 antialiased text-sm pb-16 selection:bg-emerald-100 selection:text-emerald-900">
       {/* Top Navbar */}
       <Navbar apiOnline={apiOnline} latencyMs={184} />
 
-      {/* Main Single-Column Clean Feed Layout matching screenshot */}
-      <main className="max-w-[700px] mx-auto px-4 py-4 flex flex-col gap-4">
-        {/* 1. Answer to verify card */}
+      {/* Main Content matching exact max-w-md container */}
+      <main className="max-w-md mx-auto px-3.5 pt-3.5 space-y-4">
+        {/* 1. Input Section */}
         <AnswerPanel
           text={inputText}
           onText={setInputText}
@@ -303,7 +303,7 @@ export default function App() {
           />
         )}
 
-        {/* 2. Adversarial Injection Notice (Quarantined) */}
+        {/* 2. Security Quarantine Alert */}
         {report?.notices && report.notices.length > 0 && (
           <InjectionBanner notices={report.notices} />
         )}
@@ -311,31 +311,31 @@ export default function App() {
         {/* Verification Report & Results Section */}
         {report && (
           <>
-            {/* 3. Verification Report Header Card */}
-            <ReportHeader id={report.request_id} language={report.language} />
+            {/* 3. Verification Metrics Report Card */}
+            <section className="bg-white rounded-xl border border-slate-200 shadow-xs p-3.5 space-y-3.5" data-purpose="verification-summary-report">
+              <ReportHeader id={report.request_id} language={report.language} />
+              <SummaryStats claims={report.claims} summary={report.summary} />
+            </section>
 
-            {/* 4. 4-Box Stats Strip & Progress Bar Card */}
-            <SummaryStats claims={report.claims} summary={report.summary} />
-
-            {/* 5. Highlighted Answer Card */}
+            {/* 4. Highlighted Answer View */}
             <HighlightedAnswer
               originalText={report.answer_normalized || inputText}
               claims={report.claims}
             />
 
-            {/* 6. Claim Inspections List */}
-            <div className="flex flex-col gap-3">
+            {/* 5. Claim Inspections List */}
+            <section className="space-y-2.5" data-purpose="claim-inspections">
               <div className="flex items-center justify-between px-1">
-                <h3 className="text-sm font-bold text-slate-800 tracking-tight">
+                <h3 className="font-bold text-slate-800 text-xs sm:text-sm">
                   Claim inspections ({shownClaims.length} of {report.claims.length} shown)
                 </h3>
                 {report.claims.length > 3 && (
                   <button
                     type="button"
                     onClick={() => setShowAll(!showAll)}
-                    className="text-xs text-emerald-700 font-semibold hover:underline"
+                    className="text-xs font-semibold text-emerald-700 hover:text-emerald-800 flex items-center space-x-1"
                   >
-                    {showAll ? 'Show fewer ←' : 'View all claims →'}
+                    <span>{showAll ? 'Show fewer ←' : 'View all claims →'}</span>
                   </button>
                 )}
               </div>
@@ -343,9 +343,9 @@ export default function App() {
               {shownClaims.map((claim, idx) => (
                 <ClaimCard key={claim.id || idx} claim={claim} index={idx} />
               ))}
-            </div>
+            </section>
 
-            {/* 7. Factually Corrected Answer Draft Card */}
+            {/* 6. Factually Corrected Answer Draft Card */}
             <CorrectedDraft
               correctedAnswer={report.corrected_answer}
               claims={report.claims}
@@ -355,57 +355,61 @@ export default function App() {
         )}
       </main>
 
-      {/* Bottom Sticky Navigation Bar matching screenshot */}
-      <footer className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-slate-200/80 py-2.5 px-6 z-40">
-        <div className="max-w-[500px] mx-auto flex items-center justify-around text-slate-500">
-          <button
-            type="button"
-            className="flex flex-col items-center gap-1 text-slate-900 font-semibold"
-          >
-            <div className="h-5 w-5 rounded-full border-2 border-slate-900 flex items-center justify-center">
-              <span className="text-[10px] font-bold">✓</span>
-            </div>
-            <span className="text-[10px] tracking-tight">Verify</span>
-          </button>
+      {/* Mobile Sticky Footer Nav matching uploaded HTML markup */}
+      <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 px-6 py-2 flex items-center justify-around text-slate-600 max-w-md mx-auto" data-purpose="mobile-bottom-bar">
+        <button
+          type="button"
+          className="flex flex-col items-center text-slate-900 font-semibold text-[10px]"
+        >
+          <svg className="w-5 h-5 text-slate-900 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
+          </svg>
+          Verify
+        </button>
 
-          <button
-            type="button"
-            onClick={() => {
-              if (report) {
-                const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `trustcheck-${report.request_id || 'report'}.json`;
-                a.click();
-              }
-            }}
-            className="flex flex-col items-center gap-1 hover:text-slate-800 transition-colors"
-          >
-            <span className="text-base">🕒</span>
-            <span className="text-[10px] tracking-tight">History</span>
-          </button>
+        <button
+          type="button"
+          onClick={() => {
+            if (report) {
+              const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = `trustcheck-${report.request_id || 'report'}.json`;
+              a.click();
+            }
+          }}
+          className="flex flex-col items-center hover:text-slate-900 transition text-[10px]"
+        >
+          <svg className="w-5 h-5 text-slate-400 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
+          </svg>
+          History
+        </button>
 
-          <a
-            href="https://github.com/Aditya891752/TRUST-CHECK"
-            target="_blank"
-            rel="noreferrer"
-            className="flex flex-col items-center gap-1 hover:text-slate-800 transition-colors"
-          >
-            <span className="text-base">📋</span>
-            <span className="text-[10px] tracking-tight">Methodology</span>
-          </a>
+        <a
+          href="https://github.com/Aditya891752/TRUST-CHECK"
+          target="_blank"
+          rel="noreferrer"
+          className="flex flex-col items-center hover:text-slate-900 transition text-[10px]"
+        >
+          <svg className="w-5 h-5 text-slate-400 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
+          </svg>
+          Methodology
+        </a>
 
-          <button
-            type="button"
-            onClick={() => alert('TrustCheck v1.2 — Transparent AI answer reliability checker by Galactic Debuggers.')}
-            className="flex flex-col items-center gap-1 hover:text-slate-800 transition-colors"
-          >
-            <span className="text-base">ℹ️</span>
-            <span className="text-[10px] tracking-tight">About</span>
-          </button>
-        </div>
-      </footer>
+        <button
+          type="button"
+          onClick={() => alert('TrustCheck v1.2 — Transparent AI answer reliability checker by Galactic Debuggers.')}
+          className="flex flex-col items-center hover:text-slate-900 transition text-[10px]"
+        >
+          <svg className="w-5 h-5 text-slate-400 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
+          </svg>
+          About
+        </button>
+      </nav>
     </div>
   );
 }

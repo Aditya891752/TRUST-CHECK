@@ -1,6 +1,5 @@
 import React, { type ReactNode } from 'react';
 import type { Claim } from '../lib/types';
-import { STATUS } from '../lib/status';
 
 interface HighlightedAnswerProps {
   originalText: string;
@@ -20,9 +19,9 @@ export const HighlightedAnswer: React.FC<HighlightedAnswerProps> = ({
 
   if (validClaims.length === 0) {
     return (
-      <section className="card p-5 bg-white border border-line rounded-xl shadow-xs">
-        <h3 className="text-base sm:text-lg font-bold text-navy mb-2">Analyzed text</h3>
-        <p className="text-[15px] leading-[1.6] text-gray-800 whitespace-pre-wrap">{originalText}</p>
+      <section className="bg-white rounded-xl border border-slate-200 shadow-xs p-3.5 space-y-2.5">
+        <h3 className="font-bold text-slate-900 text-sm">Analyzed text</h3>
+        <p className="text-xs leading-relaxed text-slate-800 bg-slate-50/60 p-3 rounded-lg border border-slate-200/70 whitespace-pre-wrap">{originalText}</p>
       </section>
     );
   }
@@ -40,10 +39,17 @@ export const HighlightedAnswer: React.FC<HighlightedAnswerProps> = ({
     }
 
     const vKey = claim.verdict || 'verifying';
-    const statusDef = STATUS[vKey] || STATUS.verifying;
+    const hlClass =
+      vKey === 'supported'
+        ? 'hl-green font-medium'
+        : vKey === 'uncertain'
+        ? 'hl-amber font-medium'
+        : vKey === 'unsupported'
+        ? 'hl-red font-medium'
+        : 'bg-slate-100 text-slate-700';
 
     nodes.push(
-      <mark
+      <span
         key={`claim-${claim.id}-${idx}`}
         onClick={() => {
           onSelectClaim?.(claim.id);
@@ -57,11 +63,11 @@ export const HighlightedAnswer: React.FC<HighlightedAnswerProps> = ({
             if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
           }
         }}
-        className={`${statusDef.hl} rounded px-1 py-0.5 cursor-pointer text-inherit font-medium border-b-2 border-slate-300 hover:opacity-80 transition-opacity`}
-        title={`Click to inspect claim #${idx + 1} (${statusDef.label})`}
+        className={`${hlClass} cursor-pointer hover:opacity-80 transition-opacity`}
+        title={`Click to inspect claim #${idx + 1} (${claim.verdict})`}
       >
         {originalText.substring(start, end)}
-      </mark>
+      </span>
     );
 
     lastPos = Math.max(lastPos, end);
@@ -74,23 +80,21 @@ export const HighlightedAnswer: React.FC<HighlightedAnswerProps> = ({
   }
 
   return (
-    <section className="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-[0_1px_4px_rgba(0,0,0,0.04)]">
-      {/* Header with Title + 3 Legend Pills */}
-      <div className="flex items-center justify-between mb-3.5">
-        <h3 className="text-base font-bold text-slate-900 tracking-tight">Highlighted answer</h3>
-        <div className="flex items-center gap-1.5">
-          <span className="rounded-md bg-[#DCFCE7] text-[#15803D] border border-[#BBF7D0] px-2 py-0.5 text-[11px] font-semibold">
-            Support
-          </span>
-          <span className="rounded-md bg-[#FEF3C7] text-[#B45309] border border-[#FDE68A] px-2 py-0.5 text-[11px] font-semibold">
-            Uncertain
-          </span>
-          <span className="rounded-md bg-[#FEE2E2] text-[#B91C1C] border-[#FECACA] border px-2 py-0.5 text-[11px] font-semibold">
-            Unsupported
-          </span>
+    <section className="bg-white rounded-xl border border-slate-200 shadow-xs p-3.5 space-y-2.5">
+      <div className="flex items-center justify-between">
+        <h3 className="font-bold text-slate-900 text-sm flex items-center space-x-1.5">
+          <span>Highlighted answer</span>
+        </h3>
+        <div className="flex space-x-1 text-[10px] font-medium">
+          <span className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800">Support</span>
+          <span className="px-1.5 py-0.5 rounded bg-amber-100 text-amber-800">Uncertain</span>
+          <span className="px-1.5 py-0.5 rounded bg-red-100 text-red-800">Unsupported</span>
         </div>
       </div>
-      <p className="text-[14px] leading-[1.8] text-slate-800">{nodes}</p>
+      {/* Semantic Highlighted Text Output */}
+      <div className="text-xs leading-relaxed text-slate-800 bg-slate-50/60 p-3 rounded-lg border border-slate-200/70 space-y-1 font-normal">
+        {nodes}
+      </div>
     </section>
   );
 };

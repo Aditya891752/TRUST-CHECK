@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Copy, Check, CheckCircle2, RefreshCw } from 'lucide-react';
+import { Check, CheckCircle2 } from 'lucide-react';
 import type { CorrectedAnswer as CorrectedAnswerType, Claim } from '../lib/types';
 
 interface CorrectedDraftProps {
@@ -44,46 +44,52 @@ export const CorrectedDraft: React.FC<CorrectedDraftProps> = ({
   const parts = correctedAnswer.text.split(/(\[Softened\]|\[Removed\])/);
 
   return (
-    <section className="bg-white border border-slate-200/90 rounded-2xl p-4 sm:p-5 shadow-[0_1px_4px_rgba(0,0,0,0.04)]">
-      <div className="flex flex-col gap-3 mb-3">
-        <h3 className="text-base font-bold text-slate-900 tracking-tight">
-          Factually corrected answer draft
-        </h3>
-
-        {/* Action Buttons: Copy draft + Diffs */}
-        <div className="flex items-center gap-2">
+    <section className="bg-white rounded-xl border border-slate-200 shadow-xs p-3.5 space-y-3" data-purpose="corrected-draft-section">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h3 className="font-bold text-slate-900 text-sm">Factually corrected answer draft</h3>
+        <div className="flex items-center space-x-1.5">
           <button
             type="button"
             onClick={handleCopy}
-            className="bg-slate-900 hover:bg-slate-800 text-white rounded-lg px-3 py-1.5 text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-xs"
+            className="inline-flex items-center space-x-1 text-[11px] font-medium bg-slate-900 text-white px-2.5 py-1 rounded-md hover:bg-black transition"
           >
-            {copied ? <Check size={13} className="text-emerald-400" /> : <Copy size={13} />}
-            <span>{copied ? 'Copied!' : 'Copy draft'}</span>
+            {copied ? (
+              <>
+                <Check size={12} className="text-emerald-400" />
+                <span>Copied!</span>
+              </>
+            ) : (
+              <>
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
+                </svg>
+                <span>Copy draft</span>
+              </>
+            )}
           </button>
 
           <button
             type="button"
             onClick={() => setShowDiffs(!showDiffs)}
-            className={`border rounded-lg px-3 py-1.5 text-xs font-medium flex items-center gap-1.5 transition-colors ${
-              showDiffs
-                ? 'bg-slate-100 border-slate-300 text-slate-800'
-                : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
-            }`}
+            className="inline-flex items-center space-x-1 text-[11px] font-medium bg-slate-100 text-slate-700 px-2 py-1 rounded-md hover:bg-slate-200 transition"
           >
-            <RefreshCw size={12} className={showDiffs ? 'text-emerald-600' : 'text-slate-400'} />
+            <svg className="w-3 h-3 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path d="M4 6h16M4 12h16m-7 6h7" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
+            </svg>
             <span>Diffs</span>
           </button>
         </div>
       </div>
 
-      <div className="p-3.5 rounded-xl bg-slate-50/70 border border-slate-200/60 text-[13px] leading-relaxed text-slate-800">
+      {/* Corrected answer body with badges for changes */}
+      <div className="text-xs leading-relaxed text-slate-700 bg-slate-50/70 p-3 rounded-lg border border-slate-200/80">
         {showDiffs
           ? parts.map((p, i) => {
               if (p === '[Softened]') {
                 return (
                   <span
                     key={i}
-                    className="inline-block bg-[#FEF3C7] text-[#B45309] border border-[#FDE68A] rounded px-1.5 py-0.5 text-[10px] font-bold mx-1 align-baseline"
+                    className="inline-flex items-center text-[10px] font-bold bg-amber-100 text-amber-800 px-1.5 py-0.2 rounded mr-1"
                   >
                     [Softened]
                   </span>
@@ -93,7 +99,7 @@ export const CorrectedDraft: React.FC<CorrectedDraftProps> = ({
                 return (
                   <span
                     key={i}
-                    className="inline-block bg-[#FEE2E2] text-[#B91C1C] border border-[#FECACA] rounded px-1.5 py-0.5 text-[10px] font-bold mx-1 align-baseline"
+                    className="inline-flex items-center text-[10px] font-bold bg-rose-100 text-rose-800 px-1.5 py-0.2 rounded mr-1"
                   >
                     [Removed]
                   </span>
