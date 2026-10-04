@@ -1,11 +1,12 @@
-fastapi==0.115.12
+fastapi==0.142.2
+starlette==1.7.0
 uvicorn[standard]==0.34.2
-pydantic==2.11.5
+pydantic==2.13.5
 pydantic-settings==2.9.1
 httpx==0.28.1
 anthropic==0.52.0
 slowapi==0.1.9
 tenacity==9.1.2
-pytest==8.3.5
+pytest==9.1.1
 pip-audit==2.9.0
-python-dotenv==1.1.0
+python-dotenv==1.2.4

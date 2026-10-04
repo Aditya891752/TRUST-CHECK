@@ -4,8 +4,8 @@
 Build the smallest complete vertical slice first. Every task ends in a testable state and one commit. Do not start optional polish until the end-to-end check flow works. Deploy early so hosting surprises appear first, not last.
 
 ## State
-- Current phase: 6
-- Last verified: Phase 5 design pass completed (WCAG AA contrast verified, 0 banned patterns, 2px focus rings, reduced-motion query supported)
+- Current phase: 7
+- Last verified: Phase 6 security pass completed (pip-audit 0 vulnerabilities, npm audit clean, 0 secrets in dist/ or git history, 404 on production docs, 12/12 rules.md Section C rules PASS/NA)
 - Blockers: none
 Update this block after every task.
 
@@ -66,16 +66,16 @@ Exit: the UI looks intentional and stable with no banned patterns.
 Commit: `chore: design pass`
 
 ## Phase 6: Security pass
-- [ ] No provider key in client JS (search `dist/`).
-- [ ] Search the repo and Git history for secret-like strings (`gitleaks`).
-- [ ] `.env*` handling correct. CORS allow-list correct.
-- [ ] Rate limiting and daily cap confirmed.
-- [ ] Production debug off. `/docs` and `/openapi.json` return 404 on Render.
-- [ ] Input limits enforced on the server.
-- [ ] Error responses contain no stack traces or paths.
-- [ ] No admin routes. Database and storage not used or private.
-- [ ] Security headers present on Vercel.
-- [ ] `pip-audit` and `npm audit` show no high findings.
+- [x] No provider key in client JS (search `dist/`).
+- [x] Search the repo and Git history for secret-like strings (`gitleaks`).
+- [x] `.env*` handling correct. CORS allow-list correct.
+- [x] Rate limiting and daily cap confirmed.
+- [x] Production debug off. `/docs` and `/openapi.json` return 404 on Render.
+- [x] Input limits enforced on the server.
+- [x] Error responses contain no stack traces or paths.
+- [x] No admin routes. Database and storage not used or private.
+- [x] Security headers present on Vercel.
+- [x] `pip-audit` and `npm audit` show no high findings.
 Exit: rules.md section C checked line by line, each row PASS or N/A.
 Commit: `chore: security pass`
 

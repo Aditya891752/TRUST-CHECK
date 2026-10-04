@@ -94,10 +94,22 @@ Full table with checks in rules.md section C.
   - Verdict markers provide dual text + shape representation (`● Supported`, `◐ Uncertain`, `■ Unsupported`), ensuring color is never the only signal.
   - Accessible 2px keyboard focus ring added across all interactive elements.
   - Mobile responsiveness verified for single-column layouts and fluid inputs.
+- Phase 6 (Security Pass & Vulnerability Remediation) completed:
+  - Audited client bundle (`frontend/dist/`): 0 provider secrets or keys found.
+  - Audited Git history (`git log -p`): 0 secrets committed.
+  - Confirmed `.env` exclusion: only `.env.example` tracked.
+  - Rate limiting confirmed: 5 req/min with HTTP 429 response.
+  - Production security verified: `/docs`, `/redoc`, `/openapi.json` return 404 when `ENV=production`.
+  - Server-side input validation caps enforced (4,000 char answer, 500 char question, max 8 claims).
+  - Production error safety verified: 0 stack traces or file paths leaked.
+  - Zero admin routes verified.
+  - Vercel security headers verified (`vercel.json`).
+  - Upgraded vulnerable dependencies: `pip-audit` reports 0 vulnerabilities; `npm audit` reports 0 high/critical issues.
+  - 12/12 security rules in `rules.md` Section C verified PASS or N/A.
 - Pre-commit secret scanning hook active.
 
 ## Next implementation target
-Phase 6: Security pass. Comprehensive audit against the 12 mandatory security rules in `rules.md` Section C (secret scans, CORS origins, rate limits, production debug disabled, server-side caps, dependency audits). Commit as `chore: security pass`.
+Phase 7: Demo hardening. Prepare demo test cases, warm-up instructions, and verify final end-to-end user experience.
 
 ## Glossary
 - Claim: one atomic, checkable factual statement from the answer.
