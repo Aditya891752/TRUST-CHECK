@@ -181,6 +181,13 @@ All 6 feature pack items (F6, F3, F5, F4, F1, F2) completed and verified across 
   - Backend CORS updated with regex `^chrome-extension://.*` and daily cap protects streaming endpoint.
   - Relative asset resolution (`base: './'`) in `vite.config.ts` outputs ready-to-load unpacked extension into `frontend/dist`.
 
+## Google Gemini API Support (Free Tier)
+- Google Gemini API integration (`backend/app/providers/gemini.py`):
+  - Uses `gemini-2.0-flash` (or `gemini-1.5-flash`) via official REST endpoint with `responseMimeType: "application/json"`.
+  - Zero credit card requirement / free tier from Google AI Studio.
+  - Auto-routing factory (`backend/app/providers/factory.py`): seamlessly uses `GEMINI_API_KEY` if present, `ANTHROPIC_API_KEY` if present, or deterministic offline mock.
+  - 56/56 backend pytest tests passing with full test coverage (`test_gemini_provider.py`).
+
 ## Glossary
 - Claim: one atomic, checkable factual statement from the answer.
 - Verdict: supported, uncertain or unsupported.

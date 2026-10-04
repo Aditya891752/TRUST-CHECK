@@ -3,21 +3,21 @@ Claim extractor pipeline module for TrustCheck.
 """
 
 from typing import List, Dict, Any, Optional
-from ..providers.anthropic import AnthropicProvider
+from ..providers.factory import get_llm_provider
 from ..api.schemas import SpanSchema
 from ..core.config import MAX_CLAIMS
 
 async def extract_claims(
     answer: str,
     question: Optional[str] = None,
-    provider: Optional[AnthropicProvider] = None
+    provider: Optional[Any] = None
 ) -> List[Dict[str, Any]]:
     """
     Extracts atomic claims and search queries from the answer.
     Computes character spans against original answer text.
     """
     if provider is None:
-        provider = AnthropicProvider()
+        provider = get_llm_provider()
 
     raw_claims = await provider.extract_claims_and_queries(answer, question)
     

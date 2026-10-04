@@ -152,21 +152,47 @@ async def generate_corrected_answer(
             changes=[ChangeItemSchema(claim_id=c.id, action=ChangeAction.KEPT) for c in claims]
         )
 
-    # 2. Check if Anthropic client is active
-    if provider and getattr(provider, "client", None):
-        try:
-            claims_payload = [
-                {
-                    "id": c.id,
-                    "text": c.text,
-                    "quote": c.span and original_answer[c.span.start:c.span.end] if c.span else c.text,
-                    "verdict": c.verdict.value,
-                    "reasoning": c.reasoning,
-                    "supporting_quotes": [ev.quote for ev in c.evidence if ev.stance == "supports" and ev.quote]
-                }
-                for c in claims
-            ]
+    if provider is None:
+        from ..providers.factory import get_llm_provider
+        provider = get_llm_provider()
 
+    # 2. Prepare payload
+    claims_payload = [
+        {
+            "id": c.id,
+            "text": c.text,
+            "quote": c.span and original_answer[c.span.start:c.span.end] if c.span else c.text,
+            "verdict": c.verdict.value,
+            "reasoning": c.reasoning,
+            "supporting_quotes": [ev.quote for ev in c.evidence if ev.stance == "supports" and ev.quote]
+        }
+        for c in claims
+    ]
+
+    # 3. Call active provider (Gemini or Anthropic)
+    if provider and hasattr(provider, "generate_corrected_draft"):
+        try:
+            raw_text = await provider.generate_corrected_draft(
+                original_answer=original_answer,
+                claims_payload=claims_payload,
+                language=language
+            )
+            if raw_text:
+                parsed = json.loads(raw_text)
+                res = validate_corrected_answer(
+                    text=parsed.get("text", ""),
+                    raw_changes=parsed.get("changes", []),
+                    original_answer=original_answer,
+                    claims=claims,
+                    language=language
+                )
+                if res is not None:
+                    return res
+        except Exception as e:
+            logger.warning("Gemini correction error: %s", e)
+
+    elif provider and getattr(provider, "client", None):
+        try:
             user_content = (
                 f"<answer>\n{original_answer}\n</answer>\n\n"
                 f"Target Language: {language}\n\n"
@@ -181,9 +207,7 @@ async def generate_corrected_answer(
                 messages=[{"role": "user", "content": user_content}],
                 timeout=settings.CORRECTION_TIMEOUT
             )
-
             raw_text = response.content[0].text.strip()
-            # Clean possible markdown
             raw_text = re.sub(r"^```(?:json)?\s*", "", raw_text, flags=re.MULTILINE)
             raw_text = re.sub(r"\s*```$", "", raw_text, flags=re.MULTILINE).strip()
             parsed = json.loads(raw_text)
@@ -198,6 +222,7 @@ async def generate_corrected_answer(
             if res is not None:
                 return res
         except Exception as e:
+            logger.warning("Anthropic correction error: %s", e)
             logger.warning("Live model correction call failed or timed out: %s", type(e).__name__)
 
     # 3. Deterministic fallback generation

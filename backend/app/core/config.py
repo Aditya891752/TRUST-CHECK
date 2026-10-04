@@ -3,6 +3,8 @@ from typing import List
 
 class Settings(BaseSettings):
     ENV: str = "development"
+    GEMINI_API_KEY: str = ""
+    GEMINI_MODEL: str = "gemini-2.0-flash"
     ANTHROPIC_API_KEY: str = ""
     TAVILY_API_KEY: str = ""
     ALLOWED_ORIGINS: str = ""

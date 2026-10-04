@@ -8,7 +8,7 @@ import asyncio
 import unicodedata
 import re
 from typing import List, Dict, Any, Optional
-from ..providers.anthropic import AnthropicProvider
+from ..providers.factory import get_llm_provider
 from ..api.schemas import ClaimSchema, EvidenceSchema, Verdict
 from ..core.config import QUOTE_MAX_CHARS
 
@@ -32,7 +32,7 @@ def truncate_at_word_boundary(text: str, max_chars: int) -> str:
 async def verify_claims(
     claims: List[Dict[str, Any]],
     evidence_by_claim: List[List[Dict[str, Any]]],
-    provider: Optional[AnthropicProvider] = None,
+    provider: Optional[Any] = None,
     response_language: str = "en"
 ) -> List[ClaimSchema]:
     """
@@ -40,7 +40,7 @@ async def verify_claims(
     Single-claim errors fall back gracefully to 'uncertain' without failing the report.
     """
     if provider is None:
-        provider = AnthropicProvider()
+        provider = get_llm_provider()
 
     async def verify_single(claim: Dict[str, Any], raw_evidence: List[Dict[str, Any]]) -> ClaimSchema:
         claim_id = claim["id"]
