@@ -1,0 +1,49 @@
+:root {
+  /* Colors */
+  --color-bg: #F4F8F8;
+  --color-surface: #FFFFFF;
+  --color-ink: #14262F;
+  --color-muted: #4A5D66;
+  --color-primary: #0E7C86;
+  --color-primary-hover: #0A5F67;
+  --color-on-primary: #FFFFFF;
+  --color-supported-bg: #E3F5EC;
+  --color-supported-ink: #11603F;
+  --color-uncertain-bg: #FCF1D9;
+  --color-uncertain-ink: #6B4400;
+  --color-unsupported-bg: #FADFDF;
+  --color-unsupported-ink: #8F2323;
+  --color-line: #D5E0E3;
+
+  /* Typography */
+  --font-sans: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+
+  /* Spacing (multiples of 4) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* Radii */
+  --radius: 8px;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 24px;
+  color: var(--color-ink);
+  background-color: var(--color-bg);
+  -webkit-font-smoothing: antialiased;
+}

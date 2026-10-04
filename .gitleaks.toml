@@ -1,0 +1,6 @@
+[allowlist]
+description = "TrustCheck gitleaks allowlist"
+paths = [
+  '''.env\.example''',
+  '''docs/.*''',
+]
