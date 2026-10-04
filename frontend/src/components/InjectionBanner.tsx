@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { AlertTriangle, ChevronDown } from 'lucide-react';
+import React from 'react';
+import { AlertTriangle } from 'lucide-react';
 import type { Notice } from '../lib/types';
 
 interface InjectionBannerProps {
@@ -7,8 +7,6 @@ interface InjectionBannerProps {
 }
 
 export const InjectionBanner: React.FC<InjectionBannerProps> = ({ notices }) => {
-  const [open, setOpen] = useState(false);
-
   if (!notices || notices.length === 0) return null;
 
   return (
@@ -16,48 +14,35 @@ export const InjectionBanner: React.FC<InjectionBannerProps> = ({ notices }) => 
       {notices.map((n, idx) => (
         <div
           key={idx}
-          className="w-full text-left rounded-xl border border-amber-300 bg-[#FEF6DC] p-3.5 sm:p-4 text-navy transition-all shadow-xs"
+          className="w-full text-left rounded-2xl border border-amber-200/90 bg-[#FEF9EE] p-4 text-slate-800 transition-all shadow-xs"
         >
           <div className="flex items-start gap-3">
-            <AlertTriangle size={18} className="mt-0.5 shrink-0 text-amber-700" />
-            <div className="flex-1 text-xs sm:text-sm">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="font-bold text-amber-900 tracking-wide uppercase text-xs">
+            <AlertTriangle size={18} className="mt-0.5 shrink-0 text-amber-600" />
+            <div className="flex-1 text-xs">
+              <div className="flex items-center justify-between mb-1">
+                <span className="font-bold text-amber-800 tracking-wide uppercase text-[11px]">
                   {n.code === 'instruction_in_input'
                     ? 'INSTRUCTION DETECTED: INPUT'
                     : n.code === 'instruction_in_source'
                     ? 'INSTRUCTION DETECTED: SOURCE'
                     : 'SECURITY NOTICE'}
                 </span>
-                {n.excerpt && (
-                  <>
-                    <span className="h-3.5 w-px bg-amber-400/80" />
-                    <span className="text-gray-700 font-mono text-xs">
-                      Sanitized excerpt: “{n.excerpt}”
-                    </span>
-                  </>
-                )}
+                <span className="text-[11px] font-medium text-amber-700/80">
+                  Quarantined
+                </span>
               </div>
-              <div className="mt-1 text-gray-800">{n.message}</div>
 
-              {open && (
-                <div className="mt-2.5 pt-2 border-t border-amber-300/60 text-xs text-gray-700 leading-relaxed">
-                  The flagged text was treated strictly as untrusted data and was not permitted to influence the factual verification pipeline or override instructions.
+              {n.excerpt && (
+                <div className="text-slate-700 text-xs mb-1">
+                  <span className="font-semibold text-slate-800">Sanitized excerpt:</span>{' '}
+                  <span className="italic">“{n.excerpt}”</span>
                 </div>
               )}
-            </div>
 
-            <button
-              type="button"
-              onClick={() => setOpen(!open)}
-              className="p-1 hover:bg-amber-200/50 rounded transition-colors text-amber-800"
-              title="Toggle notice details"
-            >
-              <ChevronDown
-                size={16}
-                className={`transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
-              />
-            </button>
+              <div className="text-amber-800/90 text-[11px]">
+                Malicious instructions quarantined without affecting verification logic.
+              </div>
+            </div>
           </div>
         </div>
       ))}

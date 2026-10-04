@@ -74,12 +74,23 @@ export const HighlightedAnswer: React.FC<HighlightedAnswerProps> = ({
   }
 
   return (
-    <section className="card p-5 bg-white border border-line rounded-xl shadow-xs">
-      <div className="flex items-center justify-between mb-2.5">
-        <h3 className="text-base sm:text-lg font-bold text-navy">Highlighted answer</h3>
-        <span className="text-xs text-gray-400">Click any highlighted statement to inspect evidence</span>
+    <section className="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-[0_1px_4px_rgba(0,0,0,0.04)]">
+      {/* Header with Title + 3 Legend Pills */}
+      <div className="flex items-center justify-between mb-3.5">
+        <h3 className="text-base font-bold text-slate-900 tracking-tight">Highlighted answer</h3>
+        <div className="flex items-center gap-1.5">
+          <span className="rounded-md bg-[#DCFCE7] text-[#15803D] border border-[#BBF7D0] px-2 py-0.5 text-[11px] font-semibold">
+            Support
+          </span>
+          <span className="rounded-md bg-[#FEF3C7] text-[#B45309] border border-[#FDE68A] px-2 py-0.5 text-[11px] font-semibold">
+            Uncertain
+          </span>
+          <span className="rounded-md bg-[#FEE2E2] text-[#B91C1C] border-[#FECACA] border px-2 py-0.5 text-[11px] font-semibold">
+            Unsupported
+          </span>
+        </div>
       </div>
-      <p className="text-[15px] leading-[1.7] text-gray-800">{nodes}</p>
+      <p className="text-[14px] leading-[1.8] text-slate-800">{nodes}</p>
     </section>
   );
 };

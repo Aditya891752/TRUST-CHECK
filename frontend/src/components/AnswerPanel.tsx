@@ -69,21 +69,23 @@ export const AnswerPanel: React.FC<AnswerPanelProps> = ({
   const isOverLimit = charCount > 4000;
 
   return (
-    <section className="card p-5 bg-white border border-line rounded-xl shadow-xs">
-      <div className="flex items-baseline justify-between mb-3">
-        <h2 className="text-base sm:text-lg font-bold text-navy">Answer to verify</h2>
-        <span className={`text-xs font-mono ${isOverLimit ? 'text-red-600 font-bold' : 'text-gray-500'}`}>
-          {charCount.toLocaleString()} / 4,000 chars • ~{tokenEstimate} tokens
+    <section className="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-[0_1px_4px_rgba(0,0,0,0.04)]">
+      {/* Title + Stats Pill */}
+      <div className="flex items-center justify-between mb-3">
+        <h2 className="text-base font-bold text-slate-900 tracking-tight">Answer to verify</h2>
+        <span className={`text-xs font-mono px-2.5 py-0.5 rounded-md bg-slate-50 border border-slate-200/60 ${isOverLimit ? 'text-red-600 font-bold' : 'text-slate-400'}`}>
+          {charCount.toLocaleString()} chars • ~{tokenEstimate} tokens
         </span>
       </div>
 
-      <div className={`border rounded-lg p-3 transition-colors ${isOverLimit ? 'border-red-400 bg-red-50/20' : 'border-line focus-within:border-navy'}`}>
+      {/* Text Area Box */}
+      <div className={`border rounded-xl p-3.5 transition-all ${isOverLimit ? 'border-red-400 bg-red-50/20' : 'border-slate-200 focus-within:border-slate-400 focus-within:ring-1 focus-within:ring-slate-300'}`}>
         <textarea
           value={text}
           onChange={(e) => onText(e.target.value)}
           placeholder="Paste any AI-generated response here (e.g. from ChatGPT, Claude, Gemini)..."
-          rows={9}
-          className="w-full resize-none outline-none text-[15px] leading-[1.6] bg-transparent text-navy placeholder:text-gray-400"
+          rows={7}
+          className="w-full resize-none outline-none text-[14px] leading-relaxed bg-transparent text-slate-800 placeholder:text-slate-400"
         />
       </div>
 
@@ -91,43 +93,43 @@ export const AnswerPanel: React.FC<AnswerPanelProps> = ({
       <button
         type="button"
         onClick={() => setPromptOpen(!promptOpen)}
-        className="mt-3 w-full flex items-center justify-between border border-line rounded-lg px-3 py-2 text-xs sm:text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+        className="mt-3 w-full flex items-center justify-between border border-slate-200/80 rounded-xl px-3.5 py-2.5 text-xs text-slate-600 hover:bg-slate-50/80 transition-colors"
       >
         <span className="flex items-center gap-2">
-          {promptOpen ? <ChevronDown size={15} /> : <ChevronRight size={15} />}
-          <span>Original user prompt (optional)</span>
+          {promptOpen ? <ChevronDown size={14} className="text-slate-400" /> : <ChevronRight size={14} className="text-slate-400" />}
+          <span className="font-medium text-slate-700">Original user prompt</span>
         </span>
-        {question && <span className="text-xs text-emerald-700 font-medium truncate max-w-[150px]">Provided</span>}
+        <span className="text-[11px] text-slate-400 font-mono">optional</span>
       </button>
 
       {promptOpen && (
-        <div className="mt-2 border border-line rounded-lg p-3 bg-gray-50/50">
+        <div className="mt-2 border border-slate-200/80 rounded-xl p-3 bg-slate-50/50">
           <input
             type="text"
             value={question}
             onChange={(e) => onQuestion(e.target.value)}
             placeholder="e.g. Tell me about the Apollo 11 lunar mission"
             maxLength={500}
-            className="w-full text-xs sm:text-sm bg-transparent outline-none text-navy placeholder:text-gray-400"
+            className="w-full text-xs bg-transparent outline-none text-slate-800 placeholder:text-slate-400"
           />
         </div>
       )}
 
-      {/* Language Selector */}
+      {/* Select Language Segmented Pills */}
       <div className="mt-4">
-        <div className="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2">
-          Response language
+        <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2">
+          Select language
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 sm:gap-2">
+        <div className="grid grid-cols-4 gap-2">
           {LANGS.map((l) => (
             <button
               key={l.id}
               type="button"
               onClick={() => onLanguage(l.id)}
-              className={`rounded-lg px-2 py-2 text-xs sm:text-sm font-medium transition-all ${
+              className={`rounded-lg py-2 px-1 text-xs font-semibold text-center transition-all ${
                 language === l.id
-                  ? 'bg-navy text-white shadow-xs'
-                  : 'bg-white border border-line text-gray-700 hover:bg-gray-50'
+                  ? 'bg-slate-900 text-white shadow-xs'
+                  : 'bg-slate-50/80 border border-slate-200/70 text-slate-600 hover:bg-slate-100 hover:text-slate-900'
               }`}
             >
               {l.label}
@@ -136,24 +138,25 @@ export const AnswerPanel: React.FC<AnswerPanelProps> = ({
         </div>
       </div>
 
-      {/* Action Buttons */}
-      <div className="mt-5 flex gap-2">
+      {/* Action Verify Button */}
+      <div className="mt-4 flex gap-2">
         <button
           type="button"
           onClick={onVerify}
           disabled={loading || !text.trim() || isOverLimit}
-          className="flex-1 relative bg-navy hover:bg-slate-800 text-white rounded-lg py-3 font-semibold text-sm flex items-center justify-center transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-xs"
+          className="flex-1 bg-slate-900 hover:bg-slate-800 text-white rounded-xl py-3 px-4 font-semibold text-sm flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-xs"
         >
           {loading ? (
             <>
-              <Loader2 size={16} className="animate-spin mr-2" />
-              Verifying claims...
+              <Loader2 size={16} className="animate-spin text-emerald-400" />
+              <span>Verifying answer...</span>
             </>
           ) : (
             <>
+              <span className="text-emerald-400">🛡️</span>
               <span>Verify answer</span>
-              <span className="hidden sm:inline-block absolute right-4 font-mono text-xs text-gray-400">
-                ⌘ + Enter
+              <span className="ml-2 px-1.5 py-0.5 rounded bg-slate-800 text-[11px] font-mono text-slate-400 border border-slate-700/60">
+                ⌘ + ↵
               </span>
             </>
           )}
@@ -163,8 +166,7 @@ export const AnswerPanel: React.FC<AnswerPanelProps> = ({
           <button
             type="button"
             onClick={onCancel}
-            className="px-4 py-3 rounded-lg border border-line text-gray-600 hover:text-red-700 hover:border-red-300 hover:bg-red-50 text-sm font-medium transition-colors"
-            title="Cancel active verification"
+            className="px-4 py-3 rounded-xl border border-slate-200 text-slate-600 hover:text-rose-600 hover:bg-rose-50 text-xs font-semibold transition-colors"
           >
             Cancel
           </button>
@@ -176,24 +178,20 @@ export const AnswerPanel: React.FC<AnswerPanelProps> = ({
         <button
           type="button"
           onClick={onGrabSelection}
-          className="mt-3 w-full border border-emerald-300 bg-emerald-50/70 hover:bg-emerald-100 text-emerald-800 rounded-lg py-2 px-3 text-xs font-semibold flex items-center justify-center gap-2 transition-colors"
+          className="mt-3 w-full border border-emerald-300 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 rounded-xl py-2 px-3 text-xs font-semibold flex items-center justify-center gap-2 transition-colors"
         >
           <Zap size={14} className="text-emerald-600 fill-emerald-600" />
           <span>Grab highlighted text from webpage</span>
         </button>
       )}
 
-      {/* Quick Test Samples */}
-      <div className="mt-5 pt-4 border-t border-line">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-xs font-semibold uppercase tracking-wider text-gray-500">
-            Quick-load test samples
-          </span>
-        </div>
-        <div className="flex flex-wrap gap-1.5">
-          {SAMPLES.map((s) => (
+      {/* Samples horizontal scroll pills */}
+      <div className="mt-4 pt-3.5 border-t border-slate-100">
+        <div className="text-[11px] text-slate-400 mb-2">Or try a sample:</div>
+        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
+          {SAMPLES.map((s, idx) => (
             <button
-              key={s.label}
+              key={idx}
               type="button"
               disabled={loading}
               onClick={() => {
@@ -201,9 +199,9 @@ export const AnswerPanel: React.FC<AnswerPanelProps> = ({
                 onQuestion(s.question);
                 onLanguage(s.lang);
               }}
-              className="bg-white border border-line rounded-lg px-2.5 py-1.5 text-xs text-gray-700 hover:border-navy hover:text-navy transition-all disabled:opacity-50"
+              className="shrink-0 rounded-full bg-slate-50 border border-slate-200/80 px-3 py-1 text-xs text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors disabled:opacity-50 font-medium"
             >
-              {s.label}
+              Sample {idx + 1}: {s.label.split(' ')[0]}
             </button>
           ))}
         </div>
