@@ -53,3 +53,4 @@ backend/models/
 *.safetensors
 *.pt
 *.bin
+ui-ux/

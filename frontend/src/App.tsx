@@ -1,47 +1,58 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import './styles/tokens.css';
 import { checkHealth, checkAnswer } from './lib/api';
 import { checkStream } from './lib/stream';
-import { CheckResponse, ApiError, Claim } from './lib/types';
-import CheckForm from './components/CheckForm';
-import ProgressStatus from './components/ProgressStatus';
-import ErrorNotice from './components/ErrorNotice';
-import SummaryStrip from './components/SummaryStrip';
-import HighlightedAnswer from './components/HighlightedAnswer';
-import ClaimCard from './components/ClaimCard';
-import { NoticeBanner } from './components/NoticeBanner';
-import CorrectedAnswer from './components/CorrectedAnswer';
-
+import type { CheckResponse, ApiError, Claim } from './lib/types';
 import type { ResponseLanguageOption } from './components/ResponseLanguage';
 
-function App() {
+import Navbar from './components/Navbar';
+import AnswerPanel from './components/AnswerPanel';
+import ReportHeader from './components/ReportHeader';
+import SummaryStats from './components/SummaryStats';
+import InjectionBanner from './components/InjectionBanner';
+import HighlightedAnswer from './components/HighlightedAnswer';
+import ClaimCard from './components/ClaimCard';
+import CorrectedDraft from './components/CorrectedDraft';
+import ProgressStatus from './components/ProgressStatus';
+import ErrorNotice from './components/ErrorNotice';
+import { APOLLO } from './data/mock';
+import { ShieldCheck, Sparkles, ArrowRight } from 'lucide-react';
+
+export default function App() {
   const [apiOnline, setApiOnline] = useState<boolean | null>(null);
+  const [inputText, setInputText] = useState<string>(APOLLO);
+  const [inputQuestion, setInputQuestion] = useState<string>('Tell me about the Apollo 11 lunar mission.');
+  const [responseLanguage, setResponseLanguage] = useState<ResponseLanguageOption>('auto');
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [stage, setStage] = useState<string>('Preparing verification');
   const [progress, setProgress] = useState<number>(0);
   const [report, setReport] = useState<CheckResponse | null>(null);
-  const [currentAnswer, setCurrentAnswer] = useState<string>('');
-  const [pendingSelection, setPendingSelection] = useState<string>('');
   const [error, setError] = useState<{ message: string; requestId?: string } | null>(null);
-  const [lastPayload, setLastPayload] = useState<{ answer: string; question?: string; responseLanguage?: ResponseLanguageOption } | null>(null);
+  const [showAll, setShowAll] = useState<boolean>(true);
+  const [isExtension, setIsExtension] = useState<boolean>(false);
 
   const abortControllerRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     checkHealth().then((ok) => setApiOnline(ok));
 
-    // Listen for Chrome Extension context menu or storage selection
+    // Detect if running inside Chrome Extension context
+    if (typeof chrome !== 'undefined' && chrome.tabs && typeof chrome.tabs.query === 'function') {
+      setIsExtension(true);
+    }
+
+    // Check for pending text passed from context menu or storage
     if (typeof chrome !== 'undefined' && chrome.storage?.local) {
       chrome.storage.local.get(['trustcheck_pending_text'], (res: any) => {
         if (res?.trustcheck_pending_text) {
-          setPendingSelection(res.trustcheck_pending_text);
+          setInputText(res.trustcheck_pending_text);
           chrome.storage.local.remove(['trustcheck_pending_text']);
         }
       });
 
       const messageListener = (msg: any) => {
         if (msg?.type === 'TRUSTCHECK_NEW_SELECTION' && msg.text) {
-          setPendingSelection(msg.text);
+          setInputText(msg.text);
         }
       };
 
@@ -61,7 +72,36 @@ function App() {
     setStage('Verification cancelled');
   };
 
-  const handleCheck = async (answer: string, question?: string, responseLanguage?: ResponseLanguageOption) => {
+  const handleGrabSelection = () => {
+    if (typeof chrome === 'undefined' || !chrome.tabs?.query) return;
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs: any[]) => {
+      const activeTab = tabs?.[0];
+      if (!activeTab?.id) {
+        setError({ message: 'No active tab found to grab text from.' });
+        return;
+      }
+      chrome.tabs.sendMessage(activeTab.id, { type: 'TRUSTCHECK_GET_SELECTION' }, (response: any) => {
+        if (chrome.runtime?.lastError) {
+          setError({ message: 'Could not access selection on this tab. Refresh tab or paste text directly.' });
+          return;
+        }
+        if (response?.text) {
+          setInputText(response.text);
+          setError(null);
+        } else {
+          setError({ message: 'No text is highlighted on the active webpage. Highlight text first!' });
+        }
+      });
+    });
+  };
+
+  const handleCheck = useCallback(async () => {
+    const trimmed = inputText.trim();
+    if (!trimmed) {
+      setError({ message: 'Please paste or enter an AI-generated answer to verify.' });
+      return;
+    }
+
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
     }
@@ -71,8 +111,7 @@ function App() {
     setIsLoading(true);
     setError(null);
     setReport(null);
-    setCurrentAnswer(answer);
-    setLastPayload({ answer, question, responseLanguage });
+    setShowAll(true);
 
     setStage('Initializing verification stream...');
     setProgress(10);
@@ -82,8 +121,8 @@ function App() {
     try {
       await checkStream(
         {
-          answer,
-          question,
+          answer: trimmed,
+          question: inputQuestion.trim() || undefined,
           response_language: responseLanguage,
         },
         {
@@ -116,7 +155,7 @@ function App() {
             setReport((prev) => ({
               request_id: prev?.request_id || '',
               language: prev?.language,
-              answer_normalized: prev?.answer_normalized || answer,
+              answer_normalized: prev?.answer_normalized || trimmed,
               summary: { supported: 0, uncertain: 0, unsupported: 0 },
               claims,
               notices: prev?.notices || [],
@@ -173,8 +212,8 @@ function App() {
         setStage('Connecting via standard verification...');
         try {
           const fallbackData = await checkAnswer({
-            answer,
-            question,
+            answer: trimmed,
+            question: inputQuestion.trim() || undefined,
             response_language: responseLanguage,
           });
           setProgress(100);
@@ -213,187 +252,142 @@ function App() {
         abortControllerRef.current = null;
       }
     }
-  };
+  }, [inputText, inputQuestion, responseLanguage]);
 
-  const handleRetry = () => {
-    if (lastPayload) {
-      handleCheck(lastPayload.answer, lastPayload.question, lastPayload.responseLanguage);
-    }
-  };
+  // Keyboard shortcut listener: Cmd/Ctrl + Enter
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+        e.preventDefault();
+        handleCheck();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleCheck]);
+
+  const shownClaims = report ? (showAll ? report.claims : report.claims.slice(0, 3)) : [];
 
   return (
-    <div style={{ maxWidth: '880px', margin: '0 auto', padding: 'var(--space-8) var(--space-4)', minHeight: '100vh' }}>
-      {/* Header */}
-      <header
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'baseline',
-          borderBottom: '1px solid var(--color-line)',
-          paddingBottom: 'var(--space-4)',
-          marginBottom: 'var(--space-8)',
-        }}
-      >
-        <div>
-          <h1
-            style={{
-              fontSize: '28px',
-              fontWeight: 700,
-              color: 'var(--color-ink)',
-              letterSpacing: '-0.5px',
-            }}
-          >
-            TrustCheck
-          </h1>
-          <p style={{ fontSize: '14px', color: 'var(--color-muted)', marginTop: 'var(--space-1)' }}>
-            Transparent AI answer reliability checker
-          </p>
-        </div>
+    <div className="min-h-screen bg-slate-50 font-sans text-slate-900 selection:bg-emerald-100 selection:text-emerald-900 pb-16">
+      {/* Top Navbar */}
+      <Navbar apiOnline={apiOnline} latencyMs={184} />
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
-          <span
-            style={{
-              display: 'inline-block',
-              width: '8px',
-              height: '8px',
-              borderRadius: '50%',
-              backgroundColor: apiOnline === true ? 'var(--color-supported-ink)' : apiOnline === false ? 'var(--color-unsupported-ink)' : 'var(--color-muted)',
-            }}
-            aria-hidden="true"
+      {/* Main 2-Column Dashboard Workspace */}
+      <main className="mx-auto max-w-[1600px] flex flex-col lg:flex-row gap-6 p-4 sm:p-6 items-start">
+        {/* Left Column (35%): Input Workspace */}
+        <div className="w-full lg:w-[35%] lg:sticky lg:top-20">
+          <AnswerPanel
+            text={inputText}
+            onText={setInputText}
+            question={inputQuestion}
+            onQuestion={setInputQuestion}
+            language={responseLanguage}
+            onLanguage={setResponseLanguage}
+            loading={isLoading}
+            onVerify={handleCheck}
+            onCancel={handleCancel}
+            isExtension={isExtension}
+            onGrabSelection={handleGrabSelection}
           />
-          <span style={{ fontSize: '12px', fontFamily: 'var(--font-mono)', color: 'var(--color-muted)' }}>
-            {apiOnline === true ? 'API live' : apiOnline === false ? 'API offline' : 'checking...'}
-          </span>
         </div>
-      </header>
 
-      {/* Main Workspace */}
-      <main>
-        <section style={{ marginBottom: 'var(--space-6)' }}>
-          <h2 style={{ fontSize: '20px', fontWeight: 600, color: 'var(--color-ink)', marginBottom: 'var(--space-2)' }}>
-            Verify AI answers with retrieved evidence
-          </h2>
-          <p style={{ fontSize: '15px', color: 'var(--color-muted)', lineHeight: '22px' }}>
-            Paste any AI response below. TrustCheck extracts checkable factual claims, retrieves independent evidence,
-            and provides grounded verdicts with transparent reasoning.
-          </p>
-        </section>
+        {/* Right Column (65%): Verification Results & Inspection */}
+        <div className="w-full lg:w-[65%] flex flex-col gap-4 sm:gap-5">
+          {/* Active Streaming Progress State */}
+          {isLoading && (
+            <ProgressStatus stage={stage} progressPercent={progress} onCancel={handleCancel} />
+          )}
 
-        {/* Input Form */}
-        <CheckForm onSubmit={handleCheck} isLoading={isLoading} initialAnswer={pendingSelection} />
-
-        {/* Progress State */}
-        {isLoading && <ProgressStatus stage={stage} progressPercent={progress} onCancel={handleCancel} />}
-
-        {/* Error Notice */}
-        {error && <ErrorNotice message={error.message} requestId={error.requestId} onRetry={handleRetry} />}
-
-        {/* Results Report */}
-        {report && (
-          <section
-            id="verification-report"
-            lang={report.language === 'hi' ? 'hi' : undefined}
-            style={{ marginTop: 'var(--space-8)' }}
-          >
-            {/* Injection / System Notices */}
-            <NoticeBanner notices={report.notices} />
-
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-2)', flexWrap: 'wrap', gap: '8px' }}>
-              <h2 style={{ fontSize: '20px', fontWeight: 600, color: 'var(--color-ink)' }}>
-                Verification Report
-              </h2>
-              {report.language && (
-                <span
-                  style={{
-                    fontSize: '12px',
-                    color: 'var(--color-muted)',
-                    fontFamily: 'var(--font-mono)',
-                    border: '1px solid var(--color-line)',
-                    padding: '2px 8px',
-                    borderRadius: '4px',
-                    backgroundColor: 'var(--color-surface)',
-                  }}
-                >
-                  Detected: {report.language === 'hi' ? 'Hindi (हिन्दी)' : report.language === 'hinglish' ? 'Hinglish' : 'English'}
-                </span>
-              )}
-            </div>
-
-            {/* Summary Strip */}
-            <SummaryStrip
-              supported={report.summary.supported}
-              uncertain={report.summary.uncertain}
-              unsupported={report.summary.unsupported}
+          {/* Error Notice */}
+          {error && (
+            <ErrorNotice
+              message={error.message}
+              requestId={error.requestId}
+              onRetry={handleCheck}
             />
+          )}
 
-            {/* Highlighted Answer */}
-            {currentAnswer && (
+          {/* Active Report View */}
+          {report ? (
+            <div className="flex flex-col gap-4 sm:gap-5 animate-fadeIn">
+              {/* Report Header */}
+              <ReportHeader id={report.request_id} language={report.language} />
+
+              {/* Reliability Stats Strip */}
+              <SummaryStats claims={report.claims} summary={report.summary} />
+
+              {/* Adversarial Prompt Injection Notice Banner (F5) */}
+              <InjectionBanner notices={report.notices} />
+
+              {/* Interactive Highlighted Text */}
               <HighlightedAnswer
-                originalText={report.answer_normalized || currentAnswer}
+                originalText={report.answer_normalized || inputText}
                 claims={report.claims}
               />
-            )}
 
-            {/* Claim Cards List */}
-            <div style={{ marginTop: 'var(--space-6)' }}>
-              <h3
-                style={{
-                  fontSize: '14px',
-                  fontWeight: 600,
-                  color: 'var(--color-muted)',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.5px',
-                  marginBottom: 'var(--space-4)',
-                }}
-              >
-                Claims & evidence ({report.claims.length})
-              </h3>
-
-              {report.claims.length === 0 ? (
-                <div
-                  style={{
-                    backgroundColor: 'var(--color-surface)',
-                    border: '1px solid var(--color-line)',
-                    borderRadius: 'var(--radius)',
-                    padding: 'var(--space-6)',
-                    color: 'var(--color-muted)',
-                    textAlign: 'center',
-                  }}
-                >
-                  No factual claims were found in the provided text.
+              {/* Claim Cards List */}
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-base sm:text-lg font-bold text-navy">
+                    Claim inspections ({shownClaims.length} of {report.claims.length} shown)
+                  </h3>
+                  {report.claims.length > 3 && (
+                    <button
+                      type="button"
+                      onClick={() => setShowAll(!showAll)}
+                      className="text-xs sm:text-sm text-emerald-700 font-semibold hover:underline"
+                    >
+                      {showAll ? 'Show fewer ←' : 'View all claims →'}
+                    </button>
+                  )}
                 </div>
-              ) : (
-                report.claims.map((claim, idx) => <ClaimCard key={claim.id || idx} claim={claim} index={idx} />)
-              )}
+
+                <div className="flex flex-col gap-3">
+                  {report.claims.length === 0 ? (
+                    <div className="card p-6 text-center text-gray-500 bg-white border border-line rounded-xl">
+                      No checkable factual claims found in the provided text.
+                    </div>
+                  ) : (
+                    shownClaims.map((claim, idx) => (
+                      <ClaimCard key={claim.id || idx} claim={claim} index={idx} />
+                    ))
+                  )}
+                </div>
+              </div>
+
+              {/* Factually Corrected Answer Draft (F1) */}
+              <CorrectedDraft
+                correctedAnswer={report.corrected_answer}
+                claims={report.claims}
+                answerNormalized={report.answer_normalized || inputText}
+              />
             </div>
-
-            {/* Corrected Answer Draft (Feature F1) */}
-            <CorrectedAnswer
-              correctedAnswer={report.corrected_answer}
-              claims={report.claims}
-              answerNormalized={report.answer_normalized || currentAnswer}
-            />
-          </section>
-        )}
+          ) : (
+            !isLoading && (
+              /* Welcome Placeholder when no report is active */
+              <div className="card p-8 sm:p-12 bg-white border border-line rounded-xl text-center flex flex-col items-center justify-center shadow-xs">
+                <div className="h-12 w-12 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-600 flex items-center justify-center mb-4">
+                  <ShieldCheck size={26} />
+                </div>
+                <h3 className="text-xl font-bold text-navy">Ready to verify</h3>
+                <p className="text-sm text-gray-500 max-w-md mt-2 leading-relaxed">
+                  Paste any AI-generated answer or pick a test sample on the left. TrustCheck decomposes answers into factual statements, checks independent web sources, and detects hallucinations.
+                </p>
+                <button
+                  type="button"
+                  onClick={handleCheck}
+                  className="mt-6 inline-flex items-center gap-2 bg-navy hover:bg-slate-800 text-white rounded-lg px-5 py-2.5 text-sm font-semibold transition-colors shadow-xs"
+                >
+                  <Sparkles size={16} className="text-emerald-400" />
+                  <span>Verify pre-loaded Apollo 11 sample</span>
+                  <ArrowRight size={14} />
+                </button>
+              </div>
+            )
+          )}
+        </div>
       </main>
-
-      {/* Footer */}
-      <footer
-        style={{
-          marginTop: 'var(--space-16)',
-          borderTop: '1px solid var(--color-line)',
-          paddingTop: 'var(--space-6)',
-          fontSize: '13px',
-          color: 'var(--color-muted)',
-          display: 'flex',
-          justifyContent: 'space-between',
-        }}
-      >
-        <span>TrustCheck · Galactic Debuggers · Vibeathon 2026</span>
-        <span>Evidence-grounded explainability</span>
-      </footer>
     </div>
   );
 }
-
-export default App;

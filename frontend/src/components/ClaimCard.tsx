@@ -1,148 +1,184 @@
-import type { FC, ReactNode } from 'react';
-import { Claim } from '../lib/types';
-import EvidenceList from './EvidenceList';
-import FlagChips from './FlagChips';
+import React, { useState } from 'react';
+import { ChevronDown, ChevronUp, ExternalLink, Calendar, Hash, User } from 'lucide-react';
+import type { Claim } from '../lib/types';
+import { STATUS } from '../lib/status';
 
 interface ClaimCardProps {
   claim: Claim;
   index: number;
+  flash?: boolean;
 }
 
-export const ClaimCard: FC<ClaimCardProps> = ({ claim, index }) => {
-  const getVerdictStyle = (verdict: Claim['verdict']) => {
-    switch (verdict) {
-      case 'supported':
-        return {
-          bg: 'var(--color-supported-bg)',
-          ink: 'var(--color-supported-ink)',
-          marker: '●',
-          label: 'Supported',
-        };
-      case 'uncertain':
-        return {
-          bg: 'var(--color-uncertain-bg)',
-          ink: 'var(--color-uncertain-ink)',
-          marker: '◐',
-          label: 'Uncertain',
-        };
-      case 'unsupported':
-        return {
-          bg: 'var(--color-unsupported-bg)',
-          ink: 'var(--color-unsupported-ink)',
-          marker: '■',
-          label: 'Unsupported',
-        };
+export const ClaimCard: React.FC<ClaimCardProps> = ({ claim, index, flash }) => {
+  const [open, setOpen] = useState(true);
+
+  const vKey = claim.verdict || 'verifying';
+  const statusDef = STATUS[vKey] || STATUS.verifying;
+
+  // Stance sort: supports -> contradicts -> neutral
+  const sortedEvidence = [...(claim.evidence || [])].sort((a, b) => {
+    const order: Record<string, number> = { supports: 1, contradicts: 2, neutral: 3 };
+    const aOrder = order[a.stance?.toLowerCase() || 'neutral'] || 4;
+    const bOrder = order[b.stance?.toLowerCase() || 'neutral'] || 4;
+    return aOrder - bOrder;
+  });
+
+  const getFlagIcon = (type: string) => {
+    switch (type.toLowerCase()) {
+      case 'date':
+        return <Calendar size={12} className="text-amber-700" />;
+      case 'number':
+        return <Hash size={12} className="text-blue-700" />;
+      case 'name':
+        return <User size={12} className="text-purple-700" />;
       default:
-        return {
-          bg: 'var(--color-bg)',
-          ink: 'var(--color-muted)',
-          marker: '○',
-          label: 'Verifying...',
-        };
+        return <Hash size={12} className="text-gray-600" />;
     }
-  };
-
-  const style = getVerdictStyle(claim.verdict);
-
-  // Underline flagged terms within the claim text
-  const renderAnnotatedClaimText = () => {
-    if (!claim.flags || claim.flags.length === 0) {
-      return claim.text;
-    }
-
-    const validFlags = claim.flags
-      .filter((f) => f.start >= 0 && f.end <= claim.text.length && f.start < f.end)
-      .sort((a, b) => a.start - b.start);
-
-    if (validFlags.length === 0) {
-      return claim.text;
-    }
-
-    const nodes: ReactNode[] = [];
-    let lastPos = 0;
-
-    validFlags.forEach((flag, fIdx) => {
-      if (flag.start > lastPos) {
-        nodes.push(claim.text.substring(lastPos, flag.start));
-      }
-      nodes.push(
-        <span
-          key={`flag-underlined-${flag.start}-${fIdx}`}
-          style={{
-            textDecoration: 'underline',
-            textDecorationThickness: '2px',
-            textDecorationColor: 'var(--color-primary)',
-            textUnderlineOffset: '3px',
-            fontWeight: 700,
-          }}
-          title={`${flag.type}: ${flag.text}`}
-        >
-          {claim.text.substring(flag.start, flag.end)}
-        </span>
-      );
-      lastPos = Math.max(lastPos, flag.end);
-    });
-
-    if (lastPos < claim.text.length) {
-      nodes.push(claim.text.substring(lastPos));
-    }
-
-    return nodes;
   };
 
   return (
     <article
       id={`claim-${claim.id}`}
-      style={{
-        backgroundColor: 'var(--color-surface)',
-        borderRadius: 'var(--radius)',
-        border: '1px solid var(--color-line)',
-        padding: 'var(--space-6)',
-        marginBottom: 'var(--space-4)',
-      }}
+      className={`card grid lg:grid-cols-3 lg:divide-x divide-line bg-white border border-line rounded-xl transition-all shadow-xs ${
+        flash ? 'ring-2 ring-emerald-500 shadow-md' : ''
+      }`}
     >
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-2)' }}>
-        <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-muted)', fontFamily: 'var(--font-mono)' }}>
-          #{index + 1}
-        </span>
-        <span
-          style={{
-            backgroundColor: style.bg,
-            color: style.ink,
-            padding: 'var(--space-1) var(--space-3)',
-            borderRadius: '4px',
-            fontSize: '13px',
-            fontWeight: 600,
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 'var(--space-1)',
-          }}
-        >
-          <span aria-hidden="true">{style.marker}</span>
-          <span>{style.label}</span>
-        </span>
+      {/* Column 1: Claim statement & Flags */}
+      <div className="p-4 sm:p-5 flex flex-col justify-between">
+        <div>
+          <div className="flex flex-wrap items-center gap-2 mb-2">
+            <span className="font-mono font-bold text-sm text-navy">#{index + 1}</span>
+            <span className="text-xs text-gray-500 font-medium">Claim</span>
+            <span
+              className={`ml-auto inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-semibold ${statusDef.badge}`}
+            >
+              <span className={`h-1.5 w-1.5 rounded-full ${statusDef.dot}`} />
+              {statusDef.label}
+            </span>
+          </div>
+
+          <p
+            lang={/[\u0900-\u097F]/.test(claim.text) ? 'hi' : undefined}
+            className="text-[15px] font-medium text-navy leading-[1.6]"
+          >
+            {claim.text}
+          </p>
+        </div>
+
+        {/* Flag Chips (F6) */}
+        {claim.flags && claim.flags.length > 0 && (
+          <div className="mt-3 pt-2.5 border-t border-line/60 flex flex-wrap gap-1.5">
+            {claim.flags.map((f, fIdx) => (
+              <span
+                key={fIdx}
+                className="inline-flex items-center gap-1 rounded-md bg-slate-100 border border-slate-200/60 px-2 py-0.5 text-[11px] font-medium text-slate-700"
+                title={`${f.type}: ${f.text}`}
+              >
+                {getFlagIcon(f.type)}
+                <span>
+                  <strong className="capitalize">{f.type}:</strong> {f.text}
+                </span>
+              </span>
+            ))}
+          </div>
+        )}
       </div>
 
-      <p
-        lang={/[\u0900-\u097F]/.test(claim.text) ? 'hi' : undefined}
-        style={{ fontSize: '16px', color: 'var(--color-ink)', lineHeight: '24px', marginBottom: 'var(--space-2)' }}
-      >
-        {renderAnnotatedClaimText()}
-      </p>
+      {/* Column 2: Verification reasoning */}
+      <div className="p-4 sm:p-5 bg-slate-50/30">
+        <div className="font-semibold text-xs uppercase tracking-wider text-gray-400 mb-2">
+          Verification reasoning
+        </div>
+        {claim.reasoning ? (
+          <p
+            lang={/[\u0900-\u097F]/.test(claim.reasoning) ? 'hi' : undefined}
+            className="text-sm text-gray-700 leading-[1.6]"
+          >
+            {claim.reasoning}
+          </p>
+        ) : (
+          <div className="text-xs text-gray-400 italic">
+            Evaluating retrieved sources and checking figures...
+          </div>
+        )}
+      </div>
 
-      {/* Flag Chips per F6 */}
-      <FlagChips flags={claim.flags} />
+      {/* Column 3: Evidence & Quotes */}
+      <div className="p-4 sm:p-5">
+        <div className="flex items-center justify-between mb-2">
+          <span className="font-semibold text-xs uppercase tracking-wider text-gray-400">
+            Retrieved evidence ({sortedEvidence.length})
+          </span>
+          {sortedEvidence.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setOpen(!open)}
+              className="text-xs text-emerald-700 hover:text-emerald-900 font-medium flex items-center gap-1 transition-colors"
+            >
+              {open ? 'Hide details' : 'Show details'}
+              {open ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
+            </button>
+          )}
+        </div>
 
-      {claim.reasoning && (
-        <p
-          lang={/[\u0900-\u097F]/.test(claim.reasoning) ? 'hi' : undefined}
-          style={{ fontSize: '14px', color: 'var(--color-muted)', lineHeight: '20px', marginBottom: 'var(--space-2)' }}
-        >
-          {claim.reasoning}
-        </p>
-      )}
+        {sortedEvidence.length === 0 ? (
+          <div className="text-xs text-gray-400 italic py-2">
+            Searching web sources for independent verification...
+          </div>
+        ) : open ? (
+          <div className="flex flex-col gap-3 mt-2">
+            {sortedEvidence.map((ev, evIdx) => {
+              const isSupport = ev.stance?.toLowerCase() === 'supports';
+              const isContradict = ev.stance?.toLowerCase() === 'contradicts';
+              const domain = ev.url ? new URL(ev.url).hostname.replace(/^www\./, '') : 'source';
 
-      <EvidenceList evidence={claim.evidence} />
+              return (
+                <div
+                  key={ev.id || evIdx}
+                  className="rounded-lg border border-line p-3 bg-white hover:border-slate-300 transition-colors text-xs"
+                >
+                  <div className="flex items-center justify-between gap-2 mb-1.5">
+                    <span
+                      className={`inline-block px-2 py-0.5 rounded text-[11px] font-semibold ${
+                        isSupport
+                          ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                          : isContradict
+                          ? 'bg-rose-50 text-rose-800 border border-rose-200'
+                          : 'bg-slate-100 text-slate-700 border border-slate-200'
+                      }`}
+                    >
+                      {ev.stance ? ev.stance.charAt(0).toUpperCase() + ev.stance.slice(1) : 'Neutral'}
+                    </span>
+                    <a
+                      href={ev.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-gray-500 hover:text-navy flex items-center gap-1 font-mono text-[11px]"
+                    >
+                      <span>{domain}</span>
+                      <ExternalLink size={11} />
+                    </a>
+                  </div>
+
+                  <div className="font-medium text-navy text-xs mb-1 line-clamp-1">{ev.title}</div>
+
+                  {ev.quote ? (
+                    <blockquote className="mt-1.5 border-l-2 border-emerald-500 pl-2 text-gray-700 italic bg-emerald-50/30 py-0.5 rounded-r">
+                      “{ev.quote}”
+                    </blockquote>
+                  ) : (
+                    <p className="text-gray-500 line-clamp-2 mt-1">{ev.snippet}</p>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="text-xs text-gray-500 py-1">
+            {sortedEvidence.length} source{sortedEvidence.length > 1 ? 's' : ''} retrieved. Click “Show details” to inspect quotes.
+          </div>
+        )}
+      </div>
     </article>
   );
 };
