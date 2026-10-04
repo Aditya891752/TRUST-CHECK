@@ -46,3 +46,10 @@ coverage/
 
 # Build artifacts
 *.pid
+
+# ML Models and weights (>100MB)
+backend/models/
+*.zip
+*.safetensors
+*.pt
+*.bin

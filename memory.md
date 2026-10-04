@@ -113,10 +113,12 @@ Full table with checks in rules.md section C.
   - Final acceptance criteria confirmed: paste -> claims -> evidence -> verdicts -> reasoning -> highlights -> UI display.
   - Initial baseline completed on `master` branch.
 - Pre-commit secret scanning hook active.
-- Branch `improvements-and-redesign` successfully created and checked out from `master` for all subsequent UI templates, benchmarking refinements, and feature enhancements.
+- Branch `improvements-and-redesign` active.
+- Trained Machine Learning Model (`trustcheck_trained_model`) extracted to `backend/models/trustcheck_trained_model/` (fine-tuned DeBERTa-v2 for sequence classification with weights in `model.safetensors`, `config.json`, `tokenizer.json`).
+- Added local inference engine in `backend/app/pipeline/local_ml_verifier.py`. Large binary checkpoints and zip files protected via `.gitignore`.
 
 ## Next implementation target
-Ready for user input on improvements, additional dataset benchmarking runs, or integrating user's final frontend template.
+Ready for user's final frontend design/template and further UI enhancements.
 
 ## Glossary
 - Claim: one atomic, checkable factual statement from the answer.
