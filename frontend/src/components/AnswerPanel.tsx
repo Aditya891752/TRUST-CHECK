@@ -135,25 +135,22 @@ export const AnswerPanel: React.FC<AnswerPanelProps> = ({
         </div>
 
         {/* Primary Verification CTA */}
-        <div className="mt-3.5 flex gap-2">
+        <div className="mt-3 flex gap-2">
           <button
             type="button"
             onClick={onVerify}
             disabled={loading || !text.trim() || isOverLimit}
-            className="flex-1 bg-slate-900 hover:bg-black text-white font-medium py-2.5 px-4 rounded-lg flex items-center justify-center space-x-2 text-sm shadow-sm transition active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 bg-slate-900 hover:bg-black text-white font-medium py-2 px-3.5 rounded-lg flex items-center justify-center space-x-2 text-xs shadow-xs transition active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? (
               <>
-                <Loader2 size={16} className="animate-spin text-emerald-400 mr-2" />
-                <span className="font-semibold">Verifying answer...</span>
+                <Loader2 size={14} className="animate-spin text-emerald-400 mr-1.5" />
+                <span>Verifying...</span>
               </>
             ) : (
               <>
-                <svg className="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
-                </svg>
-                <span className="font-semibold">Verify answer</span>
-                <span className="text-xs bg-slate-800 text-slate-300 font-mono px-1.5 py-0.5 rounded border border-slate-700 ml-1">⌘ + ↵</span>
+                <span className="font-semibold text-xs tracking-tight">Verify answer</span>
+                <span className="text-[10px] bg-slate-800 text-slate-300 font-mono px-1.5 py-0.5 rounded border border-slate-700 ml-1">⌘ + ↵</span>
               </>
             )}
           </button>
@@ -162,7 +159,7 @@ export const AnswerPanel: React.FC<AnswerPanelProps> = ({
             <button
               type="button"
               onClick={onCancel}
-              className="px-3 py-2.5 rounded-lg border border-slate-200 text-slate-600 hover:text-rose-600 hover:bg-rose-50 text-xs font-semibold transition"
+              className="px-2.5 py-2 rounded-lg border border-slate-200 text-slate-600 hover:text-rose-600 hover:bg-rose-50 text-xs font-semibold transition"
             >
               Cancel
             </button>
