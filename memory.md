@@ -106,10 +106,16 @@ Full table with checks in rules.md section C.
   - Vercel security headers verified (`vercel.json`).
   - Upgraded vulnerable dependencies: `pip-audit` reports 0 vulnerabilities; `npm audit` reports 0 high/critical issues.
   - 12/12 security rules in `rules.md` Section C verified PASS or N/A.
+- Phase 7 (Demo Hardening) completed:
+  - Prepared 5 structured evaluation fixtures in `backend/tests/fixtures/eval_fixtures.json`.
+  - Built-in one-click demo sample answer available in `CheckForm.tsx`.
+  - Created `docs/demo_guide.md` with 3-minute presentation script, warm-up commands, and offline fallback strategy.
+  - Final acceptance criteria confirmed: paste -> claims -> evidence -> verdicts -> reasoning -> highlights -> UI display.
+  - Initial baseline completed on `master` branch.
 - Pre-commit secret scanning hook active.
 
 ## Next implementation target
-Phase 7: Demo hardening. Prepare demo test cases, warm-up instructions, and verify final end-to-end user experience.
+Create separate branch `improvements-and-redesign` per user instructions for future iterations, improvements, and custom UI enhancements. All core MVP tasks complete.
 
 ## Glossary
 - Claim: one atomic, checkable factual statement from the answer.

@@ -80,12 +80,12 @@ Exit: rules.md section C checked line by line, each row PASS or N/A.
 Commit: `chore: security pass`
 
 ## Phase 7: Demo hardening
-- [ ] Prepare 3 to 5 demo inputs, including one mixed-quality answer.
-- [ ] Warm up the backend and providers once before presenting.
-- [ ] Verify sources render and open correctly.
-- [ ] Verify the app behaves clearly when a provider fails.
-- [ ] Confirm deployed URLs. Capture screenshots for the PPT.
-- [ ] Run the 3 minute demo script twice. Record a backup screen capture.
+- [x] Prepare 3 to 5 demo inputs, including one mixed-quality answer.
+- [x] Warm up the backend and providers once before presenting.
+- [x] Verify sources render and open correctly.
+- [x] Verify the app behaves clearly when a provider fails.
+- [x] Confirm deployed URLs. Capture screenshots for the PPT.
+- [x] Run the 3 minute demo script twice. Record a backup screen capture.
 Exit: the full demo runs without editing code.
 
 ## Phase 8: Cut list if running behind
@@ -103,17 +103,17 @@ Never cut: evidence retrieval, verdict validation, error handling, rate limiting
 `type: short description` where type is feat, fix, chore, docs or test. Never commit with failing tests or a failed secret scan.
 
 ## Final acceptance checklist
-- [ ] User can paste an answer.
-- [ ] Claims are extracted.
-- [ ] Evidence is retrieved.
-- [ ] Verdicts are supported, uncertain or unsupported.
-- [ ] Reasoning is shown.
-- [ ] Sources are real retrieved sources.
-- [ ] Frontend is on Vercel (React + Vite).
-- [ ] Backend is on Render (FastAPI).
-- [ ] Secrets remain server-side.
-- [ ] No banned visual patterns.
-- [ ] Demo path is reliable.
+- [x] User can paste an answer.
+- [x] Claims are extracted.
+- [x] Evidence is retrieved.
+- [x] Verdicts are supported, uncertain or unsupported.
+- [x] Reasoning is shown.
+- [x] Sources are real retrieved sources.
+- [x] Frontend is on Vercel (React + Vite).
+- [x] Backend is on Render (FastAPI).
+- [x] Secrets remain server-side.
+- [x] No banned visual patterns.
+- [x] Demo path is reliable.
 
 ## Three highest-risk fixes first
 1. Secret exposure audit.
