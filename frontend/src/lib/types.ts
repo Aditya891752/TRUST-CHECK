@@ -9,6 +9,8 @@ export interface Evidence {
   url: string;
   snippet: string;
   retrieved_at: string;
+  stance?: 'supports' | 'contradicts' | 'neutral' | string;
+  quote?: string | null;
 }
 
 export interface Flag {

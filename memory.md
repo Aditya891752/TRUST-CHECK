@@ -123,8 +123,17 @@ Full table with checks in rules.md section C.
   - Frontend `FlagChips.tsx` created and underlined terms rendered in `ClaimCard.tsx`.
   - 24/24 backend pytest tests passing, 4/4 Vitest tests passing, Vite builds cleanly.
 
+- Feature F3 (Exact Source Quotes) completed:
+  - Extended verification contract with `stance` ('supports', 'contradicts', 'neutral') and verbatim `quote`.
+  - Implemented server-side deterministic quote substring validation against snippet after NFKC normalization.
+  - Implemented word-boundary quote truncation at `QUOTE_MAX_CHARS` (200).
+  - Enforced verdict rule: `supported` requires at least one evidence item with stance `supports`.
+  - Evidence list ordered by stance: supports, contradicts, neutral.
+  - Created frontend `QuoteBlock.tsx` emphasizing verified quotes inside snippets with WCAG AA stance badges.
+  - 28/28 backend pytest tests passing, 4/4 Vitest tests passing, Vite builds cleanly.
+
 ## Next implementation target
-Step C: Feature F3 (Exact Source Quotes) — stance (`supports`, `refutes`, `unrelated`), quote extraction, server-side substring validation, and `QuoteBlock.tsx`. Commit as `feat: exact source quotes`.
+Step D: Feature F5 (Injection Notices and Test Sample) — input scanning, notice banners, dropping tainted snippets, and adversarial test button. Commit as `feat: injection notices and test sample`.
 
 ## Glossary
 - Claim: one atomic, checkable factual statement from the answer.

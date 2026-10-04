@@ -51,6 +51,8 @@ class EvidenceSchema(BaseModel):
     url: str = Field(..., description="Canonical URL of the retrieved evidence")
     snippet: str = Field(..., description="Retrieved excerpt or snippet")
     retrieved_at: str = Field(..., description="ISO 8601 UTC retrieval timestamp")
+    stance: Optional[str] = Field("neutral", description="Evidence stance: 'supports', 'contradicts', or 'neutral'")
+    quote: Optional[str] = Field(None, description="Exact verified verbatim quote from snippet, or null")
 
 class ClaimSchema(BaseModel):
     id: str = Field(..., description="Stable local claim identifier (e.g. c1, c2)")

@@ -1,11 +1,12 @@
-import { useState } from 'react';
+import { useState, type FC } from 'react';
 import { Evidence } from '../lib/types';
+import QuoteBlock from './QuoteBlock';
 
 interface EvidenceListProps {
   evidence: Evidence[];
 }
 
-export const EvidenceList: React.FC<EvidenceListProps> = ({ evidence }) => {
+export const EvidenceList: FC<EvidenceListProps> = ({ evidence }) => {
   const [isOpen, setIsOpen] = useState(false);
 
   if (!evidence || evidence.length === 0) {
@@ -77,11 +78,9 @@ export const EvidenceList: React.FC<EvidenceListProps> = ({ evidence }) => {
                   </a>
                 )}
               </div>
-              {item.snippet && (
-                <p style={{ marginTop: 'var(--space-2)', color: 'var(--color-muted)', lineHeight: '18px' }}>
-                  "{item.snippet}"
-                </p>
-              )}
+
+              {/* Verified Quote Block (Feature F3) */}
+              <QuoteBlock snippet={item.snippet} quote={item.quote} stance={item.stance} />
             </li>
           ))}
         </ul>
