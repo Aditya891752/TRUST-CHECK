@@ -9,6 +9,7 @@ import SummaryStrip from './components/SummaryStrip';
 import HighlightedAnswer from './components/HighlightedAnswer';
 import ClaimCard from './components/ClaimCard';
 import { NoticeBanner } from './components/NoticeBanner';
+import CorrectedAnswer from './components/CorrectedAnswer';
 
 import type { ResponseLanguageOption } from './components/ResponseLanguage';
 
@@ -225,6 +226,13 @@ function App() {
                 report.claims.map((claim, idx) => <ClaimCard key={claim.id || idx} claim={claim} index={idx} />)
               )}
             </div>
+
+            {/* Corrected Answer Draft (Feature F1) */}
+            <CorrectedAnswer
+              correctedAnswer={report.corrected_answer}
+              claims={report.claims}
+              answerNormalized={report.answer_normalized || currentAnswer}
+            />
           </section>
         )}
       </main>

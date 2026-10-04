@@ -83,11 +83,20 @@ async def check_answer(request: Request, payload: CheckRequest):
         response_language=target_lang
     )
 
-    # 6. Structured report generation with notices, language, and normalized answer
+    # 6. Generate corrected answer draft (Feature F1)
+    from ..pipeline.corrected_answer import generate_corrected_answer
+    corrected_ans = await generate_corrected_answer(
+        answer_norm,
+        verified_claims,
+        language=target_lang
+    )
+
+    # 7. Structured report generation with notices, language, normalized answer, and corrected draft
     return build_report(
         req_id,
         verified_claims,
         notices=notices,
         language=detected_lang,
-        answer_normalized=answer_norm
+        answer_normalized=answer_norm,
+        corrected_answer=corrected_ans
     )

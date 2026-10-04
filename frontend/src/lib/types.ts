@@ -37,6 +37,16 @@ export interface Notice {
   excerpt?: string | null;
 }
 
+export interface ChangeItem {
+  claim_id: string;
+  action: 'kept' | 'hedged' | 'removed';
+}
+
+export interface CorrectedAnswer {
+  text: string;
+  changes: ChangeItem[];
+}
+
 export interface CheckResponse {
   request_id: string;
   language?: string;
@@ -44,6 +54,7 @@ export interface CheckResponse {
   summary: { supported: number; uncertain: number; unsupported: number };
   claims: Claim[];
   notices?: Notice[];
+  corrected_answer?: CorrectedAnswer | null;
 }
 
 export interface ApiError {

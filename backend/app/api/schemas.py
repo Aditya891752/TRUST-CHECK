@@ -91,6 +91,19 @@ class NoticeSchema(BaseModel):
     message: str = Field(..., description="Fixed user-safe explanation")
     excerpt: Optional[str] = Field(None, description="Plain-text detected excerpt (max 80 chars)")
 
+class ChangeAction(str, Enum):
+    KEPT = "kept"
+    HEDGED = "hedged"
+    REMOVED = "removed"
+
+class ChangeItemSchema(BaseModel):
+    claim_id: str = Field(..., description="Target claim id (e.g. c1)")
+    action: ChangeAction = Field(..., description="Action taken: kept, hedged, or removed")
+
+class CorrectedAnswerSchema(BaseModel):
+    text: str = Field(..., description="Rewritten draft text")
+    changes: List[ChangeItemSchema] = Field(default_factory=list, description="Claim-level actions")
+
 class CheckResponse(BaseModel):
     request_id: str = Field(..., description="Unique tracking identifier for the request")
     language: str = Field("en", description="Detected input language: 'en', 'hi', 'hinglish', or 'other'")
@@ -98,6 +111,7 @@ class CheckResponse(BaseModel):
     summary: SummarySchema = Field(..., description="Aggregate counts per verdict")
     claims: List[ClaimSchema] = Field(default_factory=list, max_length=MAX_CLAIMS, description="Atomic claims and evaluations")
     notices: List[NoticeSchema] = Field(default_factory=list, description="Adversarial prompt injection notices or system notices")
+    corrected_answer: Optional[CorrectedAnswerSchema] = Field(None, description="Draft answer rewritten from checked claims, or null")
 
 class ErrorDetailSchema(BaseModel):
     code: str = Field(..., description="Standardized error code")

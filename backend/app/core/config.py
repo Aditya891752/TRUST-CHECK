@@ -8,6 +8,8 @@ class Settings(BaseSettings):
     ALLOWED_ORIGINS: str = ""
     RATE_LIMIT_PER_MINUTE: int = 5
     DAILY_REQUEST_CAP: int = 100
+    CORRECTION_ENABLED: bool = True
+    CORRECTION_TIMEOUT: float = 12.0
 
     @property
     def cors_origins(self) -> List[str]:

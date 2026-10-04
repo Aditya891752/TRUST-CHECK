@@ -149,8 +149,20 @@ Full table with checks in rules.md section C.
   - Frontend: `Noto Sans Devanagari` in font stack, line-height 1.7 for `:lang(hi)`, `ResponseLanguage.tsx` segmented control, and sample buttons for Hindi and Hinglish.
   - 42/42 backend pytest tests passing, 4/4 Vitest tests passing, clean Vite production build.
 
+- Feature F1 (Corrected Answer) completed:
+  - Created `backend/app/pipeline/corrected_answer.py` generating a factual rewritten draft from checked claims.
+  - Enforced deterministic server-side safety validation:
+    - Consistency: `supported` claims must be `kept`, `uncertain` may be `hedged` or `removed`, `unsupported` must be `removed`.
+    - Blocking hallucinated figures: every number/date token in draft must exist in original answer.
+    - Zero URLs, links, or HTML tags permitted.
+    - Length boundary (1.2x + 100 chars) and language script consistency enforced.
+  - Safe fallback: any model or validation failure returns `null` without failing the report.
+  - Added `CORRECTION_ENABLED` toggle in `config.py`.
+  - Frontend: `CorrectedAnswer.tsx` rendered below claims list with clean draft copy button, textual action badges (`[Softened]`, `[Removed]`), and 'No changes needed' banner for all-supported claims.
+  - 49/49 backend pytest tests passing, 4/4 Vitest tests passing, clean Vite build.
+
 ## Next implementation target
-Step F: Feature F1 (Corrected Answer) — one extra model call after verdicts to rewrite answer retaining supported claims and softening/removing unsupported/uncertain claims, with strict server-side validation against hallucinated numbers/URLs. Commit as `feat: corrected answer`.
+Step G: Feature F2 (Live Streaming SSE Results) — SSE endpoint `POST /api/v1/check/stream` streaming progressive events (`started`, `claim_discovered`, `evidence_retrieved`, `claim_result`, `notice`, `corrected_answer`, `done`, `error`) with concurrent stream limit, while keeping non-streaming endpoint as fallback. Commit as `feat: live streaming`.
 
 ## Glossary
 - Claim: one atomic, checkable factual statement from the answer.

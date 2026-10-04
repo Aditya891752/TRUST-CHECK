@@ -3,14 +3,15 @@ Report builder pipeline module for TrustCheck.
 """
 
 from typing import List, Optional
-from ..api.schemas import ClaimSchema, SummarySchema, CheckResponse, Verdict, NoticeSchema
+from ..api.schemas import ClaimSchema, SummarySchema, CheckResponse, Verdict, NoticeSchema, CorrectedAnswerSchema
 
 def build_report(
     request_id: str,
     verified_claims: List[ClaimSchema],
     notices: Optional[List[NoticeSchema]] = None,
     language: str = "en",
-    answer_normalized: str = ""
+    answer_normalized: str = "",
+    corrected_answer: Optional[CorrectedAnswerSchema] = None
 ) -> CheckResponse:
     """
     Builds the final structured CheckResponse report from verified claims.
@@ -37,5 +38,6 @@ def build_report(
         answer_normalized=answer_normalized,
         summary=summary,
         claims=verified_claims,
-        notices=notices or []
+        notices=notices or [],
+        corrected_answer=corrected_answer
     )
