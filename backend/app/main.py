@@ -63,6 +63,7 @@ app.add_exception_handler(Exception, global_exception_handler)
 # 6. Routes
 app.include_router(router, prefix="/api/v1")
 
+@app.get("/health")
 @app.get("/api/health")
 async def health():
     return {"status": "ok"}
