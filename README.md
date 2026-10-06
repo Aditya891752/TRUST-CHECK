@@ -49,6 +49,5 @@ See `docs/architecture-diagram.md` for the full deployment guide.
 
 ## Security
 
-- No secrets in frontend code or client bundles.
 - Rate limiting and input validation on the backend.
 - See `docs/rules.md` for the complete security checklist.
